@@ -10,6 +10,7 @@ The main branch is currently identical to 4minitz/develop.
 The develop branch is currently functionally the same, with some dependancy updates.
 
 My immediate plans are to upgrade to a more current version of meteor (and thus node), no immediate plans for feature changes, though the front end might have to be re-done at some point.
+The [project board](https://github.com/bubonicfred/5minitz/projects/1) for a stable releas.
 
 Also the name is not set in stone.
 
