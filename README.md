@@ -5,11 +5,11 @@ develop/
 # 5Minitz!
 This is an attempt to maintain 4minitz. 
 
-The main branch is currently identical to 4minitz/develop.
+The main branch is currently functionally identical to 4minitz/develop.
 
-The develop branch is currently functionally the same, with some dependancy updates.
+The develop branch is (hopefully) functionally the same, with dependancy updates and update to meteor 2.2
 
-My immediate plans are to upgrade to a more current version of meteor (and thus node), no immediate plans for feature changes, though the front end might have to be re-done at some point.
+Currently aiming to remove dead dependancies before updating to Meteor 2.3 (and beyond)
 Please see this [project board](https://github.com/bubonicfred/5minitz/projects/1) for the roadmap to a stable version.
 
 Also the name is not set in stone.
@@ -101,7 +101,7 @@ protection for MongoDB) and also consumes some amount of extra RAM (>700 MB)).
 Don't miss the [Admin Guide](doc/admin/adminguide.md) with a more comprehensive
 coverage of the real production installation topic!
 
-Tests currenly running with meteor 1.6.1.4
+Tests currenly running with meteor 2.2.4
 
 ### Prerequisites
 
