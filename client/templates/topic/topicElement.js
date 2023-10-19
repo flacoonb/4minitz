@@ -55,7 +55,7 @@ Template.topicElement.helpers({
     return isFeatureShowItemInputFieldOnDemandEnabled();
   },
 
-  getLabels: function () {
+  getLabels() {
     const tmplData = Template.instance().data;
     return LabelResolver.resolveLabels(
       this.topic.labels,
@@ -63,20 +63,14 @@ Template.topicElement.helpers({
     ).map(labelSetFontColor);
   },
 
-  checkedState: function () {
-    if (this.topic.isOpen) {
-      return "";
-    } else {
-      return { checked: "checked" };
-    }
+  checkedState() {
+    return this.topic.isOpen ? "" : { checked: "checked" };
   },
 
-  disabledState: function () {
-    if (this.isEditable && !this.topic.isSkipped) {
-      return "";
-    } else {
-      return { disabled: "disabled" };
-    }
+  disabledState() {
+    return this.isEditable && !this.topic.isSkipped
+      ? ""
+      : { disabled: "disabled" };
   },
 
   // determine if this topic shall be rendered collapsed

@@ -1,5 +1,6 @@
-import { Template } from "meteor/templating";
 import { UserRoles } from "/imports/userroles";
+import { Template } from "meteor/templating";
+
 import { MinutesFinder } from "../../../imports/services/minutesFinder";
 
 Template.meetingSeriesOverview.helpers({
@@ -9,9 +10,6 @@ Template.meetingSeriesOverview.helpers({
   },
 
   lastMinutes() {
-    const seriesDocumentFromDataContext = this;
-    return MinutesFinder.lastMinutesOfMeetingSeries(
-      seriesDocumentFromDataContext,
-    );
+    return MinutesFinder.lastMinutesOfMeetingSeries(this);
   },
 });

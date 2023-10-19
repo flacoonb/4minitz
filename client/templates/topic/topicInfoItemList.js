@@ -86,12 +86,12 @@ export class TopicInfoItemListContext {
    * @param parentTopicId topic ID
    */
   constructor(items, isReadonly, topicParentId = null, parentTopicId = null) {
-    this.items = !parentTopicId
-      ? items
-      : items.map((item) => {
+    this.items = parentTopicId
+      ? items.map((item) => {
           item.parentTopicId = parentTopicId;
           return item;
-        });
+        })
+      : items;
     this.isReadonly = isReadonly;
     this.topicParentId = topicParentId; // the parent of the topic: either
     // minute or meeting series!
@@ -122,13 +122,13 @@ Template.topicInfoItemList.onCreated(function () {
 });
 
 const updateItemSorting = (evt, ui) => {
-  let item = ui.item,
-    sorting = item.parent().find("> .topicInfoItem"),
-    topic = new Topic(
-      item.attr("data-topic-parent-id"),
-      item.attr("data-parent-id"),
-    ),
-    newItemSorting = [];
+  const item = ui.item;
+  const sorting = item.parent().find("> .topicInfoItem");
+  const topic = new Topic(
+    item.attr("data-topic-parent-id"),
+    item.attr("data-parent-id"),
+  );
+  const newItemSorting = [];
 
   for (let i = 0; i < sorting.length; ++i) {
     const itemId = $(sorting[i]).attr("data-id");
@@ -146,11 +146,7 @@ const updateItemSorting = (evt, ui) => {
 
 const getMeetingSeriesId = (parentElementId) => {
   const aMin = Minutes.findOne(parentElementId);
-  if (aMin) {
-    return aMin.parentMeetingSeriesID();
-  } else {
-    return parentElementId;
-  }
+  return aMin ? aMin.parentMeetingSeriesID() : parentElementId;
 };
 
 const createTopic = (parentElementId, topicId) => {
@@ -249,7 +245,7 @@ function makeDetailEditable(textEl, inputEl, detailActionsId) {
 }
 
 Template.topicInfoItemList.helpers({
-  topicStateClass: function (index) {
+  topicStateClass(index) {
     /** @type {TopicInfoItemListContext} */
     const context = Template.instance().data;
     const infoItem = context.items[index];
@@ -269,12 +265,12 @@ Template.topicInfoItemList.helpers({
     }
   },
 
-  hasDetails: function (index) {
+  hasDetails(index) {
     const details = getDetails(Template.instance(), index);
     return details.length > 0;
   },
 
-  detailsArray: function (index) {
+  detailsArray(index) {
     return getDetails(Template.instance(), index);
   },
 
@@ -283,21 +279,21 @@ Template.topicInfoItemList.helpers({
     return allItemsExpandedState[itemID];
   },
 
-  isActionItem: function (index) {
+  isActionItem(index) {
     /** @type {TopicInfoItemListContext} */
     const context = Template.instance().data;
     const item = context.items[index];
     return item && item.itemType === "actionItem";
   },
 
-  isInfoItem: function (index) {
+  isInfoItem(index) {
     /** @type {TopicInfoItemListContext} */
     const context = Template.instance().data;
     const item = context.items[index];
     return item && context.items[index].itemType === "infoItem";
   },
 
-  isItemConversationAllowed: function (index) {
+  isItemConversationAllowed(index) {
     /** @type {TopicInfoItemListContext} */
     const context = Template.instance().data;
     if (context.isReadonly) {
@@ -309,35 +305,25 @@ Template.topicInfoItemList.helpers({
     );
   },
 
-  checkedState: function (index) {
+  checkedState(index) {
     /** @type {TopicInfoItemListContext} */
     const context = Template.instance().data;
     const infoItem = context.items[index];
-    if ((infoItem && infoItem.itemType === "infoItem") || infoItem.isOpen) {
-      return "";
-    } else {
-      return { checked: "checked" };
-    }
+    return (infoItem && infoItem.itemType === "infoItem") || infoItem.isOpen
+      ? ""
+      : { checked: "checked" };
   },
 
-  disabledState: function () {
+  disabledState() {
     /** @type {TopicInfoItemListContext} */
     const context = Template.instance().data;
-    if (context.isReadonly) {
-      return { disabled: "disabled" };
-    } else {
-      return "";
-    }
+    return context.isReadonly ? { disabled: "disabled" } : "";
   },
 
   cursorForEdit() {
     /** @type {TopicInfoItemListContext} */
     const context = Template.instance().data;
-    if (context.isReadonly) {
-      return "";
-    } else {
-      return "pointer";
-    }
+    return context.isReadonly ? "" : "pointer";
   },
 
   responsiblesHelper(index) {
@@ -353,7 +339,7 @@ Template.topicInfoItemList.helpers({
     return responsible ? `(${responsible})` : "";
   },
 
-  getLabels: function (index) {
+  getLabels(index) {
     /** @type {TopicInfoItemListContext} */
     const context = Template.instance().data;
     const infoItem = context.items[index];
@@ -366,7 +352,7 @@ Template.topicInfoItemList.helpers({
     ).map(labelSetFontColor);
   },
 
-  getLinkToTopic: function (index) {
+  getLinkToTopic(index) {
     /** @type {TopicInfoItemListContext} */
     const context = Template.instance().data;
     const infoItem = context.items[index];
@@ -380,13 +366,13 @@ Template.topicInfoItemList.helpers({
     );
   },
 
-  showLinks: function () {
+  showLinks() {
     /** @type {TopicInfoItemListContext} */
     const context = Template.instance().data;
     return context.hasLink;
   },
 
-  tooltipForTopic: function (index) {
+  tooltipForTopic(index) {
     /** @type {TopicInfoItemListContext} */
     const context = Template.instance().data;
     const infoItem = context.items[index];
@@ -465,19 +451,19 @@ Template.topicInfoItemList.events({
           templateData,
           button,
         ).show();
-      } else {
-        // not-sticky && delte-not-allowed
-        ConfirmationDialogFactory.makeInfoDialog(
-          i18n.__("Dialog.ItemDeleteError.title"),
-          i18n.__("Dialog.ItemDeleteError.body1") +
-            " " +
-            (item.isActionItem()
-              ? i18n.__("Dialog.ItemDeleteError.body2a")
-              : i18n.__("Dialog.ItemDeleteError.body2b")) +
-            " " +
-            i18n.__("Dialog.ItemDeleteError.body3"),
-        ).show();
+        return;
       }
+      // not-sticky && delte-not-allowed
+      ConfirmationDialogFactory.makeInfoDialog(
+        i18n.__("Dialog.ItemDeleteError.title"),
+        i18n.__("Dialog.ItemDeleteError.body1") +
+          " " +
+          (item.isActionItem()
+            ? i18n.__("Dialog.ItemDeleteError.body2a")
+            : i18n.__("Dialog.ItemDeleteError.body2b")) +
+          " " +
+          i18n.__("Dialog.ItemDeleteError.body3"),
+      ).show();
     });
   },
 
@@ -706,17 +692,7 @@ Template.topicInfoItemList.events({
     );
 
     if (text === "" || text !== textEl.attr("data-text")) {
-      if (text !== "") {
-        aActionItem.updateDetails(detailIndex, text);
-        aActionItem.save().catch(handleError);
-        IsEditedService.removeIsEditedDetail(
-          aMin._id,
-          aTopic._topicDoc._id,
-          aActionItem._infoItemDoc._id,
-          detailIndex,
-          true,
-        );
-      } else {
+      if (text === "") {
         const deleteDetails = () => {
           aActionItem.removeDetails(detailIndex);
           aActionItem.save().catch(handleError);
@@ -727,11 +703,7 @@ Template.topicInfoItemList.events({
         };
 
         const oldText = aActionItem.getDetailsAt(detailIndex).text;
-        if (!oldText) {
-          // use case: Adding details and leaving the input field without
-          // entering any text should go silently.
-          deleteDetails();
-        } else {
+        if (oldText) {
           // otherwise we show an confirmation dialog before the deails will be
           // removed
           ConfirmationDialogFactory.makeWarningDialog(
@@ -741,7 +713,21 @@ Template.topicInfoItemList.events({
               subject: aActionItem.getSubject(),
             }),
           ).show();
+        } else {
+          // use case: Adding details and leaving the input field without
+          // entering any text should go silently.
+          deleteDetails();
         }
+      } else {
+        aActionItem.updateDetails(detailIndex, text);
+        aActionItem.save().catch(handleError);
+        IsEditedService.removeIsEditedDetail(
+          aMin._id,
+          aTopic._topicDoc._id,
+          aActionItem._infoItemDoc._id,
+          detailIndex,
+          true,
+        );
       }
     }
 

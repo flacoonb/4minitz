@@ -48,7 +48,7 @@ function closePopupAndUnsetIsEdited() {
 }
 
 Template.topicEdit.helpers({
-  getTopicSubject: function () {
+  getTopicSubject() {
     const topic = getEditTopic();
     return topic ? topic._topicDoc.subject : "";
   },
@@ -160,7 +160,7 @@ Template.topicEdit.events({
     closePopupAndUnsetIsEdited();
   },
 
-  keyup: function (evt) {
+  keyup(evt) {
     evt.preventDefault();
     if (evt.keyCode === 27) {
       closePopupAndUnsetIsEdited();
