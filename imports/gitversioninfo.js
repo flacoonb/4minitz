@@ -1,5 +1,5 @@
-import {formatDateISO8601} from "/imports/helpers/date";
-import {Meteor} from "meteor/meteor";
+import { formatDateISO8601 } from "/imports/helpers/date";
+import { Meteor } from "meteor/meteor";
 
 let packagejson;
 try {
@@ -11,19 +11,19 @@ try {
 }
 
 export const VERSION_INFO = {
-  tag : packagejson.version ? packagejson.version : "???",
-  branch : packagejson["4minitz"]["4m_branch"]
-               ? packagejson["4minitz"]["4m_branch"]
-               : "???",
-  commitlong : packagejson["4minitz"]["4m_commitlong"]
-                   ? packagejson["4minitz"]["4m_commitlong"]
-                   : "???",
-  commitshort : packagejson["4minitz"]["4m_commitshort"]
-                    ? packagejson["4minitz"]["4m_commitshort"]
-                    : "???",
-  date : packagejson["4minitz"]["4m_releasedate"]
-             ? packagejson["4minitz"]["4m_releasedate"]
-             : "",
+  tag: packagejson.version ? packagejson.version : "???",
+  branch: packagejson["4minitz"]["4m_branch"]
+    ? packagejson["4minitz"]["4m_branch"]
+    : "???",
+  commitlong: packagejson["4minitz"]["4m_commitlong"]
+    ? packagejson["4minitz"]["4m_commitlong"]
+    : "???",
+  commitshort: packagejson["4minitz"]["4m_commitshort"]
+    ? packagejson["4minitz"]["4m_commitshort"]
+    : "???",
+  date: packagejson["4minitz"]["4m_releasedate"]
+    ? packagejson["4minitz"]["4m_releasedate"]
+    : "",
 };
 
 Meteor.methods({

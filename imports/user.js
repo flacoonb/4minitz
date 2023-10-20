@@ -1,4 +1,4 @@
-import {Meteor} from "meteor/meteor";
+import { Meteor } from "meteor/meteor";
 
 export class User {
   constructor(source) {
@@ -22,14 +22,17 @@ export class User {
 
   static PROFILENAMEWITHFALLBACK(userObject) {
     if (userObject) {
-      return userObject.profile?.name ? userObject.profile.name
-                                      : userObject.username;
+      return userObject.profile?.name
+        ? userObject.profile.name
+        : userObject.username;
     } else {
       return `Unknown (${userObject._id}` ? userObject._id : `${userObject})`;
     }
   }
 
-  profileNameWithFallback() { return User.PROFILENAMEWITHFALLBACK(this.user); }
+  profileNameWithFallback() {
+    return User.PROFILENAMEWITHFALLBACK(this.user);
+  }
 
   userNameWithFallback() {
     return this.user ? this.user.username : `Unknown (${this.id})`;
@@ -57,12 +60,12 @@ export class User {
 }
 
 export const userSettings = {
-  showQuickHelp : {
-    meetingSeriesList : "showQuickHelp_meetingSeriesList",
-    meetingSeries : "showQuickHelp_meetingSeries",
-    meeting : "showQuickHelp_meeting",
-    meetingUpload : "showQuickHelp_meetingUpload",
+  showQuickHelp: {
+    meetingSeriesList: "showQuickHelp_meetingSeriesList",
+    meetingSeries: "showQuickHelp_meetingSeries",
+    meeting: "showQuickHelp_meeting",
+    meetingUpload: "showQuickHelp_meetingUpload",
   },
 
-  showAddDetail : "showAddDetail",
+  showAddDetail: "showAddDetail",
 };

@@ -1,11 +1,11 @@
-import {MinutesSchema} from "../collections/minutes.schema";
-import {Minutes} from "../minutes";
+import { MinutesSchema } from "../collections/minutes.schema";
+import { Minutes } from "../minutes";
 
 export class MinutesFinder {
   static allMinutesOfMeetingSeries(
-      meetingSeries,
-      limit,
-      descendingByDate = true,
+    meetingSeries,
+    limit,
+    descendingByDate = true,
   ) {
     if (meetingSeries === undefined) {
       return [];
@@ -18,27 +18,29 @@ export class MinutesFinder {
     }
 
     const sort = descendingByDate ? -1 : 1;
-    const options = {sort : {date : sort}};
+    const options = { sort: { date: sort } };
     if (limit) {
       options.limit = limit;
     }
 
     // todo: use minutes schema directly?
     return MinutesSchema.getCollection()
-        .find({_id : {$in : minutesIds}}, options)
-        .map((doc) => new Minutes(doc));
+      .find({ _id: { $in: minutesIds } }, options)
+      .map((doc) => new Minutes(doc));
   }
 
   static _getCornerMinutes(meetingSeries, limit, descendingByDate = true) {
-    if (!Array.isArray(meetingSeries.minutes) ||
-        meetingSeries.minutes.length < limit) {
+    if (
+      !Array.isArray(meetingSeries.minutes) ||
+      meetingSeries.minutes.length < limit
+    ) {
       return false;
     }
 
     const minutes = this.allMinutesOfMeetingSeries(
-        meetingSeries,
-        limit,
-        descendingByDate,
+      meetingSeries,
+      limit,
+      descendingByDate,
     );
     if (minutes && minutes.length === limit) {
       return minutes[limit - 1];
@@ -60,8 +62,8 @@ export class MinutesFinder {
   static lastFinalizedMinutesOfMeetingSeries(meetingSeries) {
     const lastMinute = this.lastMinutesOfMeetingSeries(meetingSeries);
     return lastMinute.isFinalized
-               ? lastMinute
-               : this.secondLastMinutesOfMeetingSeries(meetingSeries);
+      ? lastMinute
+      : this.secondLastMinutesOfMeetingSeries(meetingSeries);
   }
 
   static secondLastMinutesOfMeetingSeries(meetingSeries) {
@@ -74,8 +76,10 @@ export class MinutesFinder {
     const myPosition = parentSeries.minutes.indexOf(minutes._id);
     const neighborPosition = myPosition + offset;
 
-    if (neighborPosition > -1 &&
-        neighborPosition < parentSeries.minutes.length) {
+    if (
+      neighborPosition > -1 &&
+      neighborPosition < parentSeries.minutes.length
+    ) {
       const neighborMinutesId = parentSeries.minutes[neighborPosition];
       return new Minutes(neighborMinutesId);
     }
@@ -83,7 +87,9 @@ export class MinutesFinder {
     return false;
   }
 
-  static nextMinutes(minutes) { return this._getNeighborMinutes(minutes, 1); }
+  static nextMinutes(minutes) {
+    return this._getNeighborMinutes(minutes, 1);
+  }
 
   static previousMinutes(minutes) {
     return this._getNeighborMinutes(minutes, -1);

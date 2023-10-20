@@ -1,5 +1,5 @@
-import {ActionItem} from "../actionitem";
-import {InfoItem} from "../infoitem";
+import { ActionItem } from "../actionitem";
+import { InfoItem } from "../infoitem";
 
 export class ItemsConverter {
   static async convertItem(infoOrActionItem) {
