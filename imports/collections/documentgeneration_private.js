@@ -187,7 +187,7 @@ Meteor.methods({
       storeFileFunction = (htmldata, fileName, metaData) => {
         console.log("Protocol generation to file: ", fileName);
         DocumentsCollection.write(
-          new Buffer(htmldata),
+          new Buffer.alloc(htmldata),
           {
             fileName: `${fileName}.html`,
             type: "text/html",
@@ -212,7 +212,7 @@ Meteor.methods({
           htmldata,
           fileName,
           metaData,
-        ); // eslint-disable-line
+        );
         console.log(
           "Protocol generation to file: ",
           finalPDFOutputPath,
