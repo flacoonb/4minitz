@@ -2,13 +2,13 @@ import "./collections/minutes_private";
 import "./collections/workflow_private";
 import "./helpers/promisedMethods";
 
+import { emailAddressRegExpMatch } from "/imports/helpers/email";
+import { subElementsHelper } from "/imports/helpers/subElements";
+import { User } from "/imports/user";
 import { _ } from "lodash";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 import { i18n } from "meteor/universe:i18n";
-import { emailAddressRegExpMatch } from "/imports/helpers/email";
-import { subElementsHelper } from "/imports/helpers/subElements";
-import { User } from "/imports/user";
 
 import { ActionItem } from "./actionitem";
 import { MinutesSchema } from "./collections/minutes.schema";

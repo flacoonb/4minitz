@@ -1,6 +1,6 @@
+import { LdapSettings } from "/imports/config/LdapSettings";
 import { LDAP } from "meteor/babrahams:accounts-ldap";
 import { Meteor } from "meteor/meteor";
-import { LdapSettings } from "/imports/config/LdapSettings";
 
 const allowSelfSignedTLS = LdapSettings.allowSelfSignedTLS();
 if (allowSelfSignedTLS) {
@@ -27,8 +27,9 @@ LDAP.bindValue = (usernameOrEmail, isEmailAddress) => {
     : usernameOrEmail;
 
   // #Security
-  // If users have been imported with importUsers.js and "isInactivePredicate" was used to
-  // make some users isInactive==true - we stop them from logging in here.
+  // If users have been imported with importUsers.js and "isInactivePredicate"
+  // was used to make some users isInactive==true - we stop them from logging in
+  // here.
   if (Meteor?.users) {
     // skip this during unit tests
     const uid = username.toLowerCase();

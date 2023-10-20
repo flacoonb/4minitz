@@ -1,6 +1,6 @@
+import { LdapSettings } from "/imports/config/LdapSettings";
 import { _ } from "lodash";
 import { Meteor } from "meteor/meteor";
-import { LdapSettings } from "/imports/config/LdapSettings";
 
 function getSetting(path, def = undefined) {
   return _.get(Meteor.settings, path, def);

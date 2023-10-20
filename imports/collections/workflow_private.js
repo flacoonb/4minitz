@@ -1,6 +1,6 @@
+import { MinutesFinder } from "/imports/services/minutesFinder";
 import { check } from "meteor/check";
 import { Meteor } from "meteor/meteor";
-import { MinutesFinder } from "/imports/services/minutesFinder";
 
 import { MeetingSeries } from "../meetingseries";
 import { Minutes } from "../minutes";

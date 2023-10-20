@@ -1,10 +1,9 @@
-import { Meteor } from "meteor/meteor";
-import { formatDateISO8601Time } from "/imports/helpers/date";
-import { Template } from "meteor/templating";
-import { $ } from "meteor/jquery";
-
-import { BroadcastMessageSchema } from "/imports/collections/broadcastmessages.schema";
 import { BroadcastMessage } from "/imports/broadcastmessage";
+import { BroadcastMessageSchema } from "/imports/collections/broadcastmessages.schema";
+import { formatDateISO8601Time } from "/imports/helpers/date";
+import { $ } from "meteor/jquery";
+import { Meteor } from "meteor/meteor";
+import { Template } from "meteor/templating";
 
 Template.broadcastMessageDialog.onCreated(function () {
   this.subscribe("broadcastmessage");

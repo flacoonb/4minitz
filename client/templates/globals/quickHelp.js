@@ -1,5 +1,5 @@
-import { Template } from "meteor/templating";
 import { User, userSettings } from "/imports/user";
+import { Template } from "meteor/templating";
 
 Template.quickHelp.helpers({
   isQuickHelpVisible() {

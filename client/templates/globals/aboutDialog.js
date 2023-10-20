@@ -1,8 +1,8 @@
+import { GlobalSettings } from "/imports/config/GlobalSettings";
 import { Meteor } from "meteor/meteor";
 import { ReactiveDict } from "meteor/reactive-dict";
 import { ReactiveVar } from "meteor/reactive-var";
 import { Template } from "meteor/templating";
-import { GlobalSettings } from "/imports/config/GlobalSettings";
 
 const showStatistics = new ReactiveVar(false);
 

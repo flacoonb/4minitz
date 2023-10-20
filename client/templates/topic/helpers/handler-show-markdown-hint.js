@@ -1,4 +1,5 @@
 import { i18n } from "meteor/universe:i18n";
+
 import { ConfirmationDialogFactory } from "../../../helpers/confirmationDialogFactory";
 
 export const handlerShowMarkdownHint = (evt) => {

@@ -1,5 +1,5 @@
-import { Meteor } from "meteor/meteor";
 import { Label } from "/imports/label";
+import { Meteor } from "meteor/meteor";
 
 module.exports = {
   createLabelIdsReceiver(parentMeetingSeriesId) {

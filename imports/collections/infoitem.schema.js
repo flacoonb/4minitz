@@ -1,5 +1,6 @@
-import { Class as SchemaClass } from "meteor/jagi:astronomy";
 import "./idValidator";
+
+import { Class as SchemaClass } from "meteor/jagi:astronomy";
 
 export const DetailsSchema = SchemaClass.create({
   name: "DetailsSchema",

@@ -1,7 +1,7 @@
-import { Meteor } from "meteor/meteor";
-import { Template } from "meteor/templating";
-import { ReactiveVar } from "meteor/reactive-var";
 import $ from "jquery";
+import { Meteor } from "meteor/meteor";
+import { ReactiveVar } from "meteor/reactive-var";
+import { Template } from "meteor/templating";
 
 let templateInstance; // allow showDelay() to access the template
 
@@ -16,7 +16,8 @@ Template.connectionInfo.onCreated(function () {
 const showWithDelay = () => {
   if (!Meteor.status().connected) {
     $("#connectionLostWarning").fadeIn("slow");
-    // the reactive var triggers connectionLost() helper, which will trigger blaze to show
+    // the reactive var triggers connectionLost() helper, which will trigger
+    // blaze to show
     templateInstance.connectionLost.set(true);
   }
 };

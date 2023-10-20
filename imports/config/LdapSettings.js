@@ -3,8 +3,8 @@
 // This class is only useful on server side
 // ********************************
 
-import { Meteor } from "meteor/meteor";
 import _ from "lodash";
+import { Meteor } from "meteor/meteor";
 
 function get(path, def = undefined) {
   return _.get(Meteor.settings, `ldap.${path}`, def);

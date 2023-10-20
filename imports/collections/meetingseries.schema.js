@@ -1,9 +1,11 @@
+import "./idValidator";
+
 import { Class as SchemaClass } from "meteor/jagi:astronomy";
 import { Mongo } from "meteor/mongo";
 
-import { LabelSchema } from "./label.schema";
 import { MeetingSeries } from "../meetingseries";
-import "./idValidator";
+
+import { LabelSchema } from "./label.schema";
 
 const MeetingSeriesCollection = new Mongo.Collection("meetingSeries", {
   transform(doc) {

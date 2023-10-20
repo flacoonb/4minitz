@@ -1,6 +1,7 @@
-import { i18n } from "meteor/universe:i18n";
-import { Minutes } from "../../../../imports/minutes";
 import $ from "jquery";
+import { i18n } from "meteor/universe:i18n";
+
+import { Minutes } from "../../../../imports/minutes";
 
 export const configureSelect2Labels = (
   minutesId,

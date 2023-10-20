@@ -1,10 +1,11 @@
-import { Meteor } from "meteor/meteor";
 import "/imports/helpers/promisedMethods";
 
-import { MinutesSchema } from "../collections/minutes.schema";
-import { Minutes } from "../minutes";
+import { Meteor } from "meteor/meteor";
+
 import { MeetingSeriesSchema } from "../collections/meetingseries.schema";
+import { MinutesSchema } from "../collections/minutes.schema";
 import { MeetingSeries } from "../meetingseries";
+import { Minutes } from "../minutes";
 import { Topic } from "../topic";
 
 function setIsEditedMeetingSerie(msId) {

@@ -1,11 +1,13 @@
 import { subElementsHelper } from "../../helpers/subElements";
-import { MeetingSeriesTopicsUpdater } from "./meetingSeriesTopicsUpdater";
 import { MinutesFinder } from "../minutesFinder";
+
+import { MeetingSeriesTopicsUpdater } from "./meetingSeriesTopicsUpdater";
 
 /**
  *
  * @param meetingSeriesId
- * @param topicsVisibleFor array of user_ids states which user should be able to see these topics
+ * @param topicsVisibleFor array of user_ids states which user should be able to
+ *     see these topics
  * @returns {MeetingSeriesTopicsUpdater}
  */
 const createTopicsUpdater = (meetingSeriesId, topicsVisibleFor) => {
@@ -14,7 +16,8 @@ const createTopicsUpdater = (meetingSeriesId, topicsVisibleFor) => {
 
 export class TopicsFinalizer {
   /**
-   * @param meetingSeries array of user_ids states which user should be able to see these topics
+   * @param meetingSeries array of user_ids states which user should be able to
+   *     see these topics
    * @param topicsVisibleFor
    */
   static mergeTopicsForFinalize(meetingSeries, topicsVisibleFor) {
@@ -30,7 +33,8 @@ export class TopicsFinalizer {
   }
 
   /**
-   * @param meetingSeries array of user_ids states which user should be able to see these topics
+   * @param meetingSeries array of user_ids states which user should be able to
+   *     see these topics
    * @param topicsVisibleFor
    */
   static mergeTopicsForUnfinalize(meetingSeries, topicsVisibleFor) {
@@ -58,10 +62,11 @@ export class TopicsFinalizer {
 
   mergeTopics(minutesTopics, minIdContainingTopicsToInvalidateIsNew = false) {
     if (minIdContainingTopicsToInvalidateIsNew) {
-      // we have to set all isNew-Flags in the topics collection to `false` since we want that all elements
-      // created in the to-finalize protocol should be flagged as new.
-      // But we should only look at the topics presented in the last-finalized protocol because all other
-      // elements are already "invalidated".
+      // we have to set all isNew-Flags in the topics collection to `false`
+      // since we want that all elements created in the to-finalize protocol
+      // should be flagged as new. But we should only look at the topics
+      // presented in the last-finalized protocol because all other elements are
+      // already "invalidated".
       this.topicsUpdater.invalidateIsNewFlagOfTopicsPresentedInMinutes(
         minIdContainingTopicsToInvalidateIsNew,
       );
@@ -117,8 +122,8 @@ export class TopicsFinalizer {
       }
     }
 
-    // delete all sticky items listed in the this topic but not in the updateTopicDoc
-    // (these were deleted during the last minute)
+    // delete all sticky items listed in the this topic but not in the
+    // updateTopicDoc (these were deleted during the last minute)
     acceptingTopicDoc.infoItems = acceptingTopicDoc.infoItems.filter(
       (itemDoc) => {
         if (TopicsFinalizer.isStickyItem(itemDoc)) {
@@ -136,7 +141,8 @@ export class TopicsFinalizer {
   }
 
   static isStickyItem(item) {
-    // TODO: Use ItemFactory to create info-/actionItem Object then we can use the isSticky-Method
+    // TODO: Use ItemFactory to create info-/actionItem Object then we can use
+    // the isSticky-Method
     return (
       (item.itemType === "infoItem" && item.isSticky) ||
       (item.itemType === "actionItem" && item.isOpen)

@@ -1,12 +1,12 @@
+import { handleError } from "/client/helpers/handleError";
+import { Accounts } from "meteor/accounts-base";
+import { $ } from "meteor/jquery";
 import { Meteor } from "meteor/meteor";
 import { Template } from "meteor/templating";
-import { $ } from "meteor/jquery";
-import { Accounts } from "meteor/accounts-base";
-
-import { FlashMessage } from "../../helpers/flashMessage";
-import { addCustomValidator } from "../../helpers/customFieldValidator";
-import { handleError } from "/client/helpers/handleError";
 import { i18n } from "meteor/universe:i18n";
+
+import { addCustomValidator } from "../../helpers/customFieldValidator";
+import { FlashMessage } from "../../helpers/flashMessage";
 
 const showError = (evt, error) => {
   handleError(error);
