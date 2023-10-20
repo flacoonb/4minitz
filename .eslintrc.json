@@ -8,7 +8,7 @@
     "plugins": [
         "meteor",
         "lodash"
-        
+
 
 ],
 
@@ -17,12 +17,14 @@
         "plugin:meteor/recommended",
         "plugin:lodash/canonical",
         "plugin:import/recommended",
-        "prettier"
+        "prettier",
+        "plugin:node/recommended"
     ],
     "parserOptions": {
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
     "rules": {
+        "node/no-unsupported-features/es-syntax": "off"
     }
 }
