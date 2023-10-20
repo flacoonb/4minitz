@@ -1,9 +1,9 @@
 const loadLDAPSettings = require("../../imports/ldap/loadLDAPSettings");
 const importUsers = require("../../imports/ldap/import");
 const optionParser = require("node-getopt").create([
-  ["s", "settings=[ARG]", "4minitz Meteor settings file"],
-  ["m", "mongourl=[ARG]", "Mongo DB url"],
-  ["h", "help", "Display this help"],
+  [ "s", "settings=[ARG]", "4minitz Meteor settings file" ],
+  [ "m", "mongourl=[ARG]", "Mongo DB url" ],
+  [ "h", "help", "Display this help" ],
 ]);
 const arg = optionParser.bindHelp().parseSystem();
 
@@ -34,9 +34,10 @@ if (!mongoUrl) {
 }
 
 loadLDAPSettings(meteorSettingsFile)
-  .then((ldapSettings) => importUsers(ldapSettings, mongoUrl))
-  .catch((error) => {
-    console.warn(
-      `An error occurred while reading the settings file or importing users: ${error}`,
-    );
-  });
+    .then((ldapSettings) => importUsers(ldapSettings, mongoUrl))
+    .catch((error) => {
+      console.warn(
+          `An error occurred while reading the settings file or importing users: ${
+              error}`,
+      );
+    });

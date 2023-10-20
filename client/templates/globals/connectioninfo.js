@@ -1,11 +1,11 @@
-import { Meteor } from "meteor/meteor";
-import { Template } from "meteor/templating";
-import { ReactiveVar } from "meteor/reactive-var";
 import $ from "jquery";
+import {Meteor} from "meteor/meteor";
+import {ReactiveVar} from "meteor/reactive-var";
+import {Template} from "meteor/templating";
 
 let templateInstance; // allow showDelay() to access the template
 
-Template.connectionInfo.onCreated(function () {
+Template.connectionInfo.onCreated(function() {
   this.currentSymbol = new ReactiveVar(false);
   this.connectionLost = new ReactiveVar(false);
 });
@@ -16,7 +16,8 @@ Template.connectionInfo.onCreated(function () {
 const showWithDelay = () => {
   if (!Meteor.status().connected) {
     $("#connectionLostWarning").fadeIn("slow");
-    // the reactive var triggers connectionLost() helper, which will trigger blaze to show
+    // the reactive var triggers connectionLost() helper, which will trigger
+    // blaze to show
     templateInstance.connectionLost.set(true);
   }
 };
@@ -37,31 +38,27 @@ Template.connectionInfo.helpers({
     return Template.instance().connectionLost.get();
   },
 
-  connectionStatus() {
-    return Meteor.status();
-  },
+  connectionStatus() { return Meteor.status(); },
 
   connectionWaitTime() {
     const secondsToRetry =
-      (Meteor.status().retryTime - new Date().getTime()) / 1000;
+        (Meteor.status().retryTime - new Date().getTime()) / 1000;
     return Math.round(secondsToRetry);
   },
 
-  currentSymbol() {
-    return Template.instance().currentSymbol.get();
-  },
+  currentSymbol() { return Template.instance().currentSymbol.get(); },
 });
 
 Template.connectionInfo.events({
-  "click #btnWarningExpandCollapse": function (evt, tmpl) {
+  "click #btnWarningExpandCollapse" : function(evt, tmpl) {
     evt.preventDefault();
     const warningMessage = document.getElementById("warningMessage");
     warningMessage.style.display =
-      warningMessage.style.display === "none" ? "inline-block" : "none";
+        warningMessage.style.display === "none" ? "inline-block" : "none";
     tmpl.currentSymbol.set(!tmpl.currentSymbol.get());
   },
 
-  "click #btnReconnect": function (evt) {
+  "click #btnReconnect" : function(evt) {
     evt.preventDefault();
     console.log("Trying to reconnect...");
     Meteor.reconnect();

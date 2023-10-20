@@ -1,5 +1,5 @@
-import { Template } from "meteor/templating";
-import { User, userSettings } from "/imports/user";
+import {User, userSettings} from "/imports/user";
+import {Template} from "meteor/templating";
 
 Template.quickHelp.helpers({
   isQuickHelpVisible() {
@@ -7,9 +7,8 @@ Template.quickHelp.helpers({
     const user = new User();
     const isDemoUser = user.user.isDemoUser;
     return (
-      isDemoUser ||
-      user.getSetting(userSettings.showQuickHelp[quickHelpContext], true)
-    );
+        isDemoUser ||
+        user.getSetting(userSettings.showQuickHelp[quickHelpContext], true));
   },
 });
 
