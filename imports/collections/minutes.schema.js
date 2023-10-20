@@ -1,12 +1,14 @@
+import "./idValidator";
+
 import { Class as SchemaClass } from "meteor/jagi:astronomy";
 import { Mongo } from "meteor/mongo";
 
-import { TopicSchema } from "./topic.schema";
 import { Minutes } from "../minutes";
-import "./idValidator";
+
+import { TopicSchema } from "./topic.schema";
 
 const MinutesCollection = new Mongo.Collection("minutes", {
-  transform: function (doc) {
+  transform(doc) {
     return new Minutes(doc);
   },
 });

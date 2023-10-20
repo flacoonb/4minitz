@@ -35,7 +35,7 @@ Template.tabTopics.onCreated(function () {
 });
 
 Template.tabTopics.helpers({
-  getTopicFilterConfig: function () {
+  getTopicFilterConfig() {
     const FILTERS = [
       { text: i18n.__("Topic.Filter.uncompleted"), value: "is:uncompleted" },
       { text: i18n.__("Topic.Filter.completed"), value: "is:completed" },
@@ -49,7 +49,7 @@ Template.tabTopics.helpers({
     );
   },
 
-  topicViewData: function () {
+  topicViewData() {
     const tmpl = Template.instance();
     const query = tmpl.topicFilterQuery.get();
     tmpl.parser.reset();

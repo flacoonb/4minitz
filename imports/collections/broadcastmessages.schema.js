@@ -1,6 +1,7 @@
-import { Mongo } from "meteor/mongo";
-import { Class as SchemaClass } from "meteor/jagi:astronomy";
 import "./idValidator";
+
+import { Class as SchemaClass } from "meteor/jagi:astronomy";
+import { Mongo } from "meteor/mongo";
 
 const BroadcastMessageCollection = new Mongo.Collection("broadcastmessage");
 

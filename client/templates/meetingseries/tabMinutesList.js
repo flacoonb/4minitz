@@ -10,20 +10,16 @@ import { i18n } from "meteor/universe:i18n";
 import { ConfirmationDialogFactory } from "../../helpers/confirmationDialogFactory";
 
 Template.tabMinutesList.helpers({
-  meetingSeriesId: function () {
+  meetingSeriesId() {
     return this.meetingSeriesId;
   },
 
-  addMinutesDisabled: function () {
+  addMinutesDisabled() {
     const ms = new MeetingSeries(this.meetingSeriesId);
-    if (ms.addNewMinutesAllowed()) {
-      return {};
-    } else {
-      return { disabled: true };
-    }
+    return ms.addNewMinutesAllowed() ? {} : { disabled: true };
   },
 
-  isModeratorOfParentSeries: function () {
+  isModeratorOfParentSeries() {
     const usrRole = new UserRoles();
     return usrRole.isModeratorOf(this.meetingSeriesId);
   },

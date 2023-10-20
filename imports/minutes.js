@@ -1,13 +1,13 @@
 import "./collections/minutes_private";
-import "./helpers/promisedMethods";
 import "./collections/workflow_private";
+import "./helpers/promisedMethods";
 
 import { emailAddressRegExpMatch } from "/imports/helpers/email";
 import { subElementsHelper } from "/imports/helpers/subElements";
 import { User } from "/imports/user";
+import { _ } from "lodash";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
-import { _ } from "meteor/underscore";
 import { i18n } from "meteor/universe:i18n";
 
 import { ActionItem } from "./actionitem";

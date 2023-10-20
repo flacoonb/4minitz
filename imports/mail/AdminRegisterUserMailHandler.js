@@ -47,10 +47,10 @@ export class AdminRegisterUserMailHandler {
       );
       mailer.setText(i18n.__("Mail.AdminRegisterNewUser.body", mailParams));
       mailer.send();
-    } else {
-      console.error(
-        `Could not send admin register mail. User has no mail address: ${this._user._id}`,
-      );
+      return;
     }
+    console.error(
+      `Could not send admin register mail. User has no mail address: ${this._user._id}`,
+    );
   }
 }

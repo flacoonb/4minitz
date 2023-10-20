@@ -1,10 +1,9 @@
-import { Meteor } from "meteor/meteor";
-import { formatDateISO8601Time } from "/imports/helpers/date";
-import { Template } from "meteor/templating";
-import { $ } from "meteor/jquery";
-
-import { BroadcastMessageSchema } from "/imports/collections/broadcastmessages.schema";
 import { BroadcastMessage } from "/imports/broadcastmessage";
+import { BroadcastMessageSchema } from "/imports/collections/broadcastmessages.schema";
+import { formatDateISO8601Time } from "/imports/helpers/date";
+import { $ } from "meteor/jquery";
+import { Meteor } from "meteor/meteor";
+import { Template } from "meteor/templating";
 
 Template.broadcastMessageDialog.onCreated(function () {
   this.subscribe("broadcastmessage");
@@ -12,7 +11,7 @@ Template.broadcastMessageDialog.onCreated(function () {
 
 Template.broadcastMessageDialog.helpers({
   // just a little reactive trigger to show the modal msg dialog
-  showBroadcastMessages: function () {
+  showBroadcastMessages() {
     const msgCount = BroadcastMessageSchema.find({
       $and: [
         { isActive: true },
@@ -32,7 +31,7 @@ Template.broadcastMessageDialog.helpers({
     return "";
   },
 
-  broadcastMessages: function () {
+  broadcastMessages() {
     return BroadcastMessageSchema.find(
       {
         $and: [
@@ -44,7 +43,7 @@ Template.broadcastMessageDialog.helpers({
     );
   },
 
-  formatTimeStamp: function (date) {
+  formatTimeStamp(date) {
     return formatDateISO8601Time(date);
   },
 });

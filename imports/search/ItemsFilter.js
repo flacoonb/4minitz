@@ -1,5 +1,5 @@
+import { _ } from "lodash";
 import { Meteor } from "meteor/meteor";
-import { _ } from "meteor/underscore";
 
 import { ITEM_KEYWORDS } from "./FilterKeywords";
 
@@ -148,7 +148,8 @@ export class ItemsFilter {
       case "open":
         return item.isOpen;
       case "closed":
-        // explicit comparison required to skip info items (which has no isOpen property)
+        // explicit comparison required to skip info items (which has no isOpen
+        // property)
         return item.isOpen === false;
       case "info":
         return item.itemType === "infoItem";

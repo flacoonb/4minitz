@@ -1,7 +1,7 @@
-import { Meteor } from "meteor/meteor";
-import { Template } from "meteor/templating";
-import { ReactiveVar } from "meteor/reactive-var";
 import $ from "jquery";
+import { Meteor } from "meteor/meteor";
+import { ReactiveVar } from "meteor/reactive-var";
+import { Template } from "meteor/templating";
 
 let templateInstance; // allow showDelay() to access the template
 
@@ -16,7 +16,8 @@ Template.connectionInfo.onCreated(function () {
 const showWithDelay = () => {
   if (!Meteor.status().connected) {
     $("#connectionLostWarning").fadeIn("slow");
-    // the reactive var triggers connectionLost() helper, which will trigger blaze to show
+    // the reactive var triggers connectionLost() helper, which will trigger
+    // blaze to show
     templateInstance.connectionLost.set(true);
   }
 };
@@ -26,15 +27,13 @@ Template.connectionInfo.helpers({
     templateInstance = Template.instance();
     const cl = Template.instance().connectionLost.get();
 
-    if (!Meteor.status().connected) {
-      if (cl === false) {
-        // delay & fade in  - only once per connection lost!
-        Meteor.setTimeout(showWithDelay, 3000);
-      }
-    } else {
+    if (Meteor.status().connected) {
       if (cl === true) {
         Template.instance().connectionLost.set(false);
       }
+    } else if (cl === false) {
+      // delay & fade in  - only once per connection lost!
+      Meteor.setTimeout(showWithDelay, 3000);
     }
     return Template.instance().connectionLost.get();
   },
@@ -49,7 +48,7 @@ Template.connectionInfo.helpers({
     return Math.round(secondsToRetry);
   },
 
-  currentSymbol: function () {
+  currentSymbol() {
     return Template.instance().currentSymbol.get();
   },
 });
