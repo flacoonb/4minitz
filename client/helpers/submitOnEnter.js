@@ -1,4 +1,4 @@
-import { _ } from "meteor/underscore";
+import { _ } from "lodash";
 import { $ } from "meteor/jquery";
 
 function createHandler(action) {
@@ -18,7 +18,7 @@ function createHandler(action) {
 }
 
 export default function (textareas, action) {
-  _.each(textareas, (input) => {
+  _.forEach(textareas, (input) => {
     $(input).on("keyup", createHandler(action));
   });
 }

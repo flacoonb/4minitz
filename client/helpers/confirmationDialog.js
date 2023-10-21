@@ -8,7 +8,7 @@ const DIALOG_TEMPLATE = Template.confirmationDialog;
 
 export class ConfirmationDialog {
   constructor(options, callbacks = {}) {
-    this.options = _.extend(
+    this.options = _.assignIn(
       {
         title: i18n.__("Dialog.ConfirmDelete.title"),
         content: i18n.__("Dialog.ConfirmDelete.body"),
@@ -20,7 +20,7 @@ export class ConfirmationDialog {
       },
       options,
     ); // overwrite above defaults with given options
-    this.callback = _.extend(
+    this.callback = _.assignIn(
       {
         onSuccess() {},
       },
