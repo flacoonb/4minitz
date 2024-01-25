@@ -21,7 +21,7 @@ jobs:
         with:
           version: "lab:latest"
           driver: cloud
-          endpoint: "flacoonb/4minitz"
+          endpoint: "flacoonb/tvsg-minitz"
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
