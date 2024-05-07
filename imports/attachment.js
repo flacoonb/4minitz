@@ -42,7 +42,7 @@ export class Attachment {
 
   static uploadFile(uploadFilename, minutesObj, callbacks = {}) {
     const doNothing = () => {};
-    callbacks = _.extend(
+    callbacks = _.assignIn(
       {
         onStart: doNothing,
         onEnd: doNothing,

@@ -1,8 +1,9 @@
 import { expect } from "chai";
-import * as Helpers from "../../../imports/helpers/date";
-import sinon from "sinon";
 import proxyquire from "proxyquire";
+import sinon from "sinon";
 import _ from "underscore";
+
+import * as Helpers from "../../../imports/helpers/date";
 
 const doNothing = () => {};
 
@@ -21,7 +22,9 @@ const Meteor = {
 
 Helpers["@noCallThru"] = true;
 
-const Random = { id: () => {} };
+const Random = {
+  id: () => {},
+};
 
 const i18n = {
   setLocale: sinon.stub(),
@@ -49,10 +52,10 @@ const { ActionItem } = proxyquire("../../../imports/actionitem", {
   "./infoitem": { InfoItem, "@noCallThru": true },
 });
 
-describe("ActionItem", () => {
+describe("ActionItem", function () {
   let dummyTopic, infoItemDoc;
 
-  beforeEach(() => {
+  beforeEach(function () {
     dummyTopic = {
       _id: "AaBbCcDd",
       save: doNothing,
@@ -73,34 +76,34 @@ describe("ActionItem", () => {
     };
   });
 
-  describe("#constructor", () => {
-    it("sets the reference to the parent topic correctly", () => {
+  describe("#constructor", function () {
+    it("sets the reference to the parent topic correctly", function () {
       const myActionItem = new ActionItem(dummyTopic, infoItemDoc);
 
       // the infoItem should have a reference of our dummyTopic
       expect(myActionItem._parentTopic).to.equal(dummyTopic);
     });
 
-    it("sets the document correctly", () => {
+    it("sets the document correctly", function () {
       const myActionItem = new ActionItem(dummyTopic, infoItemDoc);
       // the doc should be equal to our initial document
       expect(myActionItem._infoItemDoc).to.deep.equal(infoItemDoc);
     });
 
-    it("sets the initial value for the isOpen-flag correctly", () => {
+    it("sets the initial value for the isOpen-flag correctly", function () {
       const myActionItem = new ActionItem(dummyTopic, infoItemDoc);
       // the isOpen-filed should be initially true for a new actionItem
       expect(myActionItem._infoItemDoc.isOpen).to.be.true;
     });
 
-    it("sets the initial value for the isNew-flag correctly", () => {
+    it("sets the initial value for the isNew-flag correctly", function () {
       const myActionItem = new ActionItem(dummyTopic, infoItemDoc);
       // the isOpen-filed should be initially true for a new actionItem
       expect(myActionItem._infoItemDoc.isNew).to.be.true;
     });
   });
 
-  it("#getDateFromDetails", () => {
+  it("#getDateFromDetails", function () {
     const myActionItem = new ActionItem(dummyTopic, infoItemDoc);
 
     expect(myActionItem.getDateFromDetails()).to.equal(
@@ -108,7 +111,7 @@ describe("ActionItem", () => {
     );
   });
 
-  it("#getTextFromDetails", () => {
+  it("#getTextFromDetails", function () {
     const myActionItem = new ActionItem(dummyTopic, infoItemDoc);
 
     expect(myActionItem.getTextFromDetails()).to.equal(
@@ -116,7 +119,7 @@ describe("ActionItem", () => {
     );
   });
 
-  it("#toggleState", () => {
+  it("#toggleState", function () {
     const myActionItem = new ActionItem(dummyTopic, infoItemDoc);
 
     const oldState = myActionItem._infoItemDoc.isOpen;
