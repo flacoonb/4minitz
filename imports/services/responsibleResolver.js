@@ -1,5 +1,5 @@
-import { Meteor } from "meteor/meteor";
 import { User } from "/imports/user";
+import { Meteor } from "meteor/meteor";
 
 export class ResponsibleResolver {
   // this should only be called from server.
@@ -25,20 +25,16 @@ export class ResponsibleResolver {
         }
         if (emailFromDb) {
           return emailFromDb;
+        }
+        const freetextMail = userIdOrEmail.trim();
+        if (/\S+@\S+\.\S+/.test(freetextMail)) {
+          // check valid mail anystring@anystring.anystring
+          return freetextMail;
         } else {
-          const freetextMail = userIdOrEmail.trim();
-          if (/\S+@\S+\.\S+/.test(freetextMail)) {
-            // check valid mail anystring@anystring.anystring
-            return freetextMail;
-          } else {
-            console.log(
-              "WARNING: Invalid mail address for responsible: >" +
-                freetextMail +
-                "< " +
-                userNameFromDB,
-            );
-            return null;
-          }
+          console.log(
+            `WARNING: Invalid mail address for responsible: >${freetextMail}< ${userNameFromDB}`,
+          );
+          return null;
         }
       })
       .filter((email) => email !== null);
@@ -62,8 +58,10 @@ export class ResponsibleResolver {
   }
 
   /**
-   * Get comma separated list of responsibles with human readable user name (for all registered users)
-   * @param responsibleList {string[]} - array of userIds or strings like name or e-mail-address
+   * Get comma separated list of responsibles with human readable user name (for
+   * all registered users)
+   * @param responsibleList {string[]} - array of userIds or strings like name
+   *     or e-mail-address
    * @param prefix - optional, e.g. '@'
    * @returns {string}
    */

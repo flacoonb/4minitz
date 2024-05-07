@@ -53,7 +53,7 @@ export class E2EAdmin {
     } else if (tabName === "Messages") {
       E2EGlobal.clickWithRetry(E2EAdmin.selectorMap.tabMessages);
     } else {
-      throw new Exception("Unknown admin tab: " + tabName);
+      throw new Exception(`Unknown admin tab: ${tabName}`);
     }
     E2EGlobal.waitSomeTime(600);
   }
@@ -77,8 +77,7 @@ export class E2EAdmin {
     if (index === undefined) {
       index = 1;
     }
-    let selector =
-      E2EAdmin.selectorMap.btnToggleUserInactive + ":nth-child(" + index + ")";
+    const selector = `${E2EAdmin.selectorMap.btnToggleUserInactive}:nth-child(${index})`;
     E2EGlobal.clickWithRetry(selector);
     E2EGlobal.waitSomeTime();
   }

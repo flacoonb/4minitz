@@ -5,11 +5,11 @@ import _ from "underscore";
 
 import * as DateHelpers from "../../../../../imports/helpers/date";
 
-let MinutesSchema = { update: sinon.stub(), findOne: sinon.stub() };
+const MinutesSchema = { update: sinon.stub(), findOne: sinon.stub() };
 
-let MeetingSeriesSchema = { update: sinon.stub(), findOne: sinon.stub() };
+const MeetingSeriesSchema = { update: sinon.stub(), findOne: sinon.stub() };
 
-let Minutes = sinon.stub();
+const Minutes = sinon.stub();
 // let Minutes = {
 //     save: sinon.stub(),
 // };
@@ -25,7 +25,7 @@ const MeteorError = (err, details) => {
 };
 const MeteorMethods = {};
 
-let Meteor = {
+const Meteor = {
   userId: sinon.stub(),
   user: sinon.stub(),
   defer: sinon.stub().callsArg(0),
@@ -36,7 +36,7 @@ let Meteor = {
   settings: { public: { docGeneration: { enabled: true } } },
 };
 
-let PromisedMethods = {};
+const PromisedMethods = {};
 DateHelpers["@noCallThru"] = true;
 
 const GlobalSettings = {
@@ -63,7 +63,7 @@ const User = {
   PROFILENAMEWITHFALLBACK: sinon.stub(),
 };
 
-let i18n = { setLocale: sinon.stub(), getLocale: sinon.stub() };
+const i18n = { setLocale: sinon.stub(), getLocale: sinon.stub() };
 
 const { Finalizer } = proxyquire(
   "../../../../../imports/services/finalize-minutes/finalizer",
@@ -116,7 +116,7 @@ function verifyPropertyOfMinutesUpdate(minutes, property, value) {
   );
 }
 
-describe("workflow.finalizeMinute", function () {
+describe("workflow.finalizeMinute", () => {
   const finalizeMeteorMethod = MeteorMethods["workflow.finalizeMinute"],
     fakeMeetingSeries = {
       openTopics: [],
@@ -126,7 +126,7 @@ describe("workflow.finalizeMinute", function () {
     user = { username: "me" };
   let minutes, secondToLastMinutes;
 
-  beforeEach(function () {
+  beforeEach(() => {
     minutes = {
       meetingSeries_id: "AaBbCc01",
       _id: "AaBbCc02",
@@ -156,7 +156,7 @@ describe("workflow.finalizeMinute", function () {
     Meteor.user.returns(user);
   });
 
-  afterEach(function () {
+  afterEach(() => {
     Meteor.isClient = true;
 
     Minutes.resetHistory();
@@ -167,7 +167,7 @@ describe("workflow.finalizeMinute", function () {
     Meteor.user.resetHistory();
   });
 
-  it("throws an exception if the user is not logged in", function () {
+  it("throws an exception if the user is not logged in", () => {
     Meteor.userId.resetHistory();
     Meteor.userId.returns();
 
@@ -181,7 +181,7 @@ describe("workflow.finalizeMinute", function () {
     }
   });
 
-  it("throws an exception if the user is not authorized", function () {
+  it("throws an exception if the user is not authorized", () => {
     UserRoles.resetHistory();
     UserRoles.returns({ isModeratorOf: sinon.stub().returns(false) });
 
@@ -195,7 +195,7 @@ describe("workflow.finalizeMinute", function () {
     }
   });
 
-  it("throws an exception if the minute is already finalized", function () {
+  it("throws an exception if the minute is already finalized", () => {
     minutes.isFinalized = true;
 
     try {
@@ -208,25 +208,25 @@ describe("workflow.finalizeMinute", function () {
     }
   });
 
-  it("sets the isFinalized property of the minutes to true", function () {
+  it("sets the isFinalized property of the minutes to true", () => {
     finalizeMeteorMethod(minutes._id);
     verifyPropertyOfMinutesUpdate(minutes, "isFinalized", true);
   });
 
-  it("sets the finalizedBy property to the user that is currently logged in", function () {
+  it("sets the finalizedBy property to the user that is currently logged in", () => {
     User.PROFILENAMEWITHFALLBACK.returns(user.username);
     finalizeMeteorMethod(minutes._id);
     verifyPropertyOfMinutesUpdate(minutes, "finalizedBy", user.username);
   });
 
-  it("sets the finalizedVersion to 1 if it did not exist before", function () {
+  it("sets the finalizedVersion to 1 if it did not exist before", () => {
     finalizeMeteorMethod(minutes._id);
 
     const expectedVersion = 1;
     verifyPropertyOfMinutesUpdate(minutes, "finalizedVersion", expectedVersion);
   });
 
-  it("increments the finalizedVersion if it did exist before", function () {
+  it("increments the finalizedVersion if it did exist before", () => {
     minutes.finalizedVersion = 21;
     finalizeMeteorMethod(minutes._id);
 
@@ -234,7 +234,7 @@ describe("workflow.finalizeMinute", function () {
     verifyPropertyOfMinutesUpdate(minutes, "finalizedVersion", expectedVersion);
   });
 
-  it("sends mails if minute update was successfull and method is called on server", function () {
+  it("sends mails if minute update was successfull and method is called on server", () => {
     Meteor.isClient = false;
     MinutesSchema.update.returns(1);
     GlobalSettings.isEMailDeliveryEnabled.returns(true);
@@ -250,12 +250,12 @@ describe("workflow.finalizeMinute", function () {
   });
 });
 
-describe("workflow.unfinalizeMinute", function () {
+describe("workflow.unfinalizeMinute", () => {
   const unfinalizeMeteorMethod = MeteorMethods["workflow.unfinalizeMinute"],
     user = { username: "me" };
   let minutes, secondToLastMinutes, meetingSeries;
 
-  beforeEach(function () {
+  beforeEach(() => {
     const minutesId = "AaBbCc02";
 
     meetingSeries = {
@@ -299,7 +299,7 @@ describe("workflow.unfinalizeMinute", function () {
     Meteor.user.returns(user);
   });
 
-  afterEach(function () {
+  afterEach(() => {
     Meteor.isClient = true;
 
     Minutes.resetHistory();
@@ -313,12 +313,12 @@ describe("workflow.unfinalizeMinute", function () {
     Meteor.user.resetHistory();
   });
 
-  it("sets isFinalized to false", function () {
+  it("sets isFinalized to false", () => {
     unfinalizeMeteorMethod(minutes._id);
     verifyPropertyOfMinutesUpdate(minutes, "isFinalized", false);
   });
 
-  it("throws an exception if the minutes is not the last one of the series", function () {
+  it("throws an exception if the minutes is not the last one of the series", () => {
     MinutesFinder.lastMinutesOfMeetingSeries.returns({
       _id: "some-other-minutes",
     });
@@ -333,7 +333,7 @@ describe("workflow.unfinalizeMinute", function () {
     }
   });
 
-  it("throws an exception if the user is not logged in", function () {
+  it("throws an exception if the user is not logged in", () => {
     Meteor.userId.resetHistory();
     Meteor.userId.returns();
 
@@ -347,7 +347,7 @@ describe("workflow.unfinalizeMinute", function () {
     }
   });
 
-  it("throws an exception if the user is not authorized", function () {
+  it("throws an exception if the user is not authorized", () => {
     UserRoles.resetHistory();
     UserRoles.returns({ isModeratorOf: sinon.stub().returns(false) });
 
@@ -361,42 +361,42 @@ describe("workflow.unfinalizeMinute", function () {
     }
   });
 
-  it("sets the finalizedBy property to the user that is currently logged in", function () {
+  it("sets the finalizedBy property to the user that is currently logged in", () => {
     unfinalizeMeteorMethod(minutes._id);
     verifyPropertyOfMinutesUpdate(minutes, "finalizedBy", user.username);
   });
 });
 
-describe("Finalizer", function () {
+describe("Finalizer", () => {
   let minutesId, minutes;
 
-  beforeEach(function () {
+  beforeEach(() => {
     minutesId = "AaBbCc02";
 
     minutes = {};
     Minutes.returns(minutes);
   });
 
-  afterEach(function () {
+  afterEach(() => {
     Meteor.call.resetHistory();
     Minutes.resetHistory();
   });
 
-  describe("#finalize", function () {
-    it("calls the meteor methods workflow.finalizeMinute and documentgeneration.createAndStoreFile", function () {
+  describe("#finalize", () => {
+    it("calls the meteor methods workflow.finalizeMinute and documentgeneration.createAndStoreFile", () => {
       Finalizer.finalize();
 
       expect(Meteor.call.calledTwice).to.be.true;
     });
 
-    it("sends the id to the meteor method workflow.finalizeMinute", function () {
+    it("sends the id to the meteor method workflow.finalizeMinute", () => {
       Finalizer.finalize(minutesId);
 
       expect(Meteor.call.calledWith("workflow.finalizeMinute", minutesId)).to.be
         .true;
     });
 
-    it("sends the id to the meteor method documentgeneration.createAndStoreFile", function () {
+    it("sends the id to the meteor method documentgeneration.createAndStoreFile", () => {
       Finalizer.finalize(minutesId);
 
       expect(
@@ -408,14 +408,14 @@ describe("Finalizer", function () {
     });
   });
 
-  describe("#unfinalize", function () {
-    it("calls the meteor methods workflow.unfinalizeMinute and documentgeneration.removeFile", function () {
+  describe("#unfinalize", () => {
+    it("calls the meteor methods workflow.unfinalizeMinute and documentgeneration.removeFile", () => {
       Finalizer.unfinalize();
 
       expect(Meteor.call.calledTwice).to.be.true;
     });
 
-    it("sends the id to the meteor method workflow.unfinalizeMinute", function () {
+    it("sends the id to the meteor method workflow.unfinalizeMinute", () => {
       Finalizer.unfinalize(minutesId);
 
       expect(
@@ -423,7 +423,7 @@ describe("Finalizer", function () {
       ).to.be.true;
     });
 
-    it("sends the id to the meteor method documentgeneration.removeFile", function () {
+    it("sends the id to the meteor method documentgeneration.removeFile", () => {
       Finalizer.unfinalize(minutesId);
 
       expect(
@@ -435,19 +435,19 @@ describe("Finalizer", function () {
     });
   });
 
-  describe("#finalizedInfo", function () {
+  describe("#finalizedInfo", () => {
     let minutes;
 
-    beforeEach(function () {
+    beforeEach(() => {
       minutes = {};
       MinutesSchema.findOne.returns(minutes);
     });
 
-    afterEach(function () {
+    afterEach(() => {
       MinutesSchema.findOne.resetHistory();
     });
 
-    it("returns that the minutes was never finalized if it was never finalized", function () {
+    it("returns that the minutes was never finalized if it was never finalized", () => {
       Object.assign(minutes, { finalizedAt: null });
 
       const someId = "";
@@ -457,7 +457,7 @@ describe("Finalizer", function () {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    it("returns that the minutes was unfinalized if it was", function () {
+    it("returns that the minutes was unfinalized if it was", () => {
       Object.assign(minutes, {
         finalizedAt: new Date(2017, 6, 1, 14, 4, 0),
         isFinalized: false,
@@ -471,7 +471,7 @@ describe("Finalizer", function () {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    it("returns that the minutes was finalized if it was", function () {
+    it("returns that the minutes was finalized if it was", () => {
       Object.assign(minutes, {
         finalizedAt: new Date(2017, 6, 1, 14, 4, 0),
         isFinalized: true,
@@ -485,7 +485,7 @@ describe("Finalizer", function () {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    it("states the version if it is available", function () {
+    it("states the version if it is available", () => {
       Object.assign(minutes, {
         finalizedAt: new Date(2017, 6, 1, 14, 4, 0),
         isFinalized: true,
@@ -502,10 +502,10 @@ describe("Finalizer", function () {
     });
   });
 
-  describe("#isUnfinalizeMinutesAllowed", function () {
+  describe("#isUnfinalizeMinutesAllowed", () => {
     let meetingSeries, minutes;
 
-    beforeEach(function () {
+    beforeEach(() => {
       const minutesId = "some-fance-minutes-id";
       minutes = { _id: minutesId };
       meetingSeries = {};
@@ -516,19 +516,19 @@ describe("Finalizer", function () {
       MinutesFinder.lastMinutesOfMeetingSeries.returns({});
     });
 
-    afterEach(function () {
+    afterEach(() => {
       MinutesSchema.findOne.resetHistory();
       MeetingSeriesSchema.findOne.resetHistory();
       MinutesFinder.lastMinutesOfMeetingSeries.resetHistory();
     });
 
-    it("returns true if the given minutes id belongs to the last minutes in the series", function () {
+    it("returns true if the given minutes id belongs to the last minutes in the series", () => {
       MinutesFinder.lastMinutesOfMeetingSeries.returns(minutes);
       const result = Finalizer.isUnfinalizeMinutesAllowed(minutes._id);
       expect(result).to.be.true;
     });
 
-    it("returns false if there is some other minutes that is the last minutes in the series", function () {
+    it("returns false if there is some other minutes that is the last minutes in the series", () => {
       const someOtherMinutes = { _id: "some-other-minutes" };
       MinutesFinder.lastMinutesOfMeetingSeries.returns(someOtherMinutes);
 

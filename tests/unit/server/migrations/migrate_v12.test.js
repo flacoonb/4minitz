@@ -7,13 +7,13 @@ require("../../../../imports/helpers/date");
 const FIRST_MIN_ID = "#Min01";
 const SND_MIN_ID = "#Min02";
 
-let MinutesSchema = { update: sinon.stub() };
+const MinutesSchema = { update: sinon.stub() };
 MinutesSchema.getCollection = (_) => MinutesSchema;
 
-let MeetingSeriesSchema = { update: sinon.stub() };
+const MeetingSeriesSchema = { update: sinon.stub() };
 MeetingSeriesSchema.getCollection = (_) => MeetingSeriesSchema;
 
-let MinutesFinder = {
+const MinutesFinder = {
   firstMinutesResult: undefined,
   firstMinutesOfMeetingSeries() {
     return this.firstMinutesResult;
@@ -28,7 +28,7 @@ let MinutesFinder = {
   },
 };
 class MeteorError {}
-let Meteor = { Error: MeteorError };
+const Meteor = { Error: MeteorError };
 
 const Random = {
   i: 1,
@@ -48,10 +48,10 @@ const { MigrateV12 } = proxyquire("../../../../server/migrations/migrate_v12", {
   "/imports/services/minutesFinder": { MinutesFinder, "@noCallThru": true },
 });
 
-describe("Migrate Version 12", function () {
+describe("Migrate Version 12", () => {
   let firstFakeMinute, sndFakeMinute, fakeMeetingSeries;
 
-  beforeEach(function () {
+  beforeEach(() => {
     sndFakeMinute = {
       _id: SND_MIN_ID,
       topics: [
@@ -145,18 +145,18 @@ describe("Migrate Version 12", function () {
     };
   });
 
-  afterEach(function () {
+  afterEach(() => {
     MinutesSchema.update.resetHistory();
     MeetingSeriesSchema.update.resetHistory();
   });
 
-  describe("#up", function () {
-    let checkDetailHasProperties = (detail) => {
+  describe("#up", () => {
+    const checkDetailHasProperties = (detail) => {
       expect(detail).to.have.ownProperty("createdInMinute");
       expect(detail).to.have.ownProperty("_id");
     };
 
-    it("sets the createdInMinutes and _id attribute for all topics in all minutes", function () {
+    it("sets the createdInMinutes and _id attribute for all topics in all minutes", () => {
       MigrateV12.up();
       firstFakeMinute.topics.forEach((topic) => {
         topic.infoItems.forEach((infoItem) => {
@@ -174,7 +174,7 @@ describe("Migrate Version 12", function () {
       });
     });
 
-    it("sets the createdInMinutes and _id attribute for all topics in the meeting series", function () {
+    it("sets the createdInMinutes and _id attribute for all topics in the meeting series", () => {
       MigrateV12.up();
       fakeMeetingSeries.topics.forEach((topic) => {
         topic.infoItems.forEach((infoItem) => {
@@ -192,7 +192,7 @@ describe("Migrate Version 12", function () {
       });
     });
 
-    it("sets the correct createdInMinute-attribute for all details in minutes and meetingSeries", function () {
+    it("sets the correct createdInMinute-attribute for all details in minutes and meetingSeries", () => {
       MigrateV12.up();
       // detail was created in 1st minute => createdInMinute = 1st Minute
       expect(
@@ -226,9 +226,9 @@ describe("Migrate Version 12", function () {
       ).to.equal(SND_MIN_ID);
     });
 
-    it("sets the correct _id attribute for all details in minutes and meetingSeries", function () {
+    it("sets the correct _id attribute for all details in minutes and meetingSeries", () => {
       MigrateV12.up();
-      let detailIdInFirstMinute =
+      const detailIdInFirstMinute =
         firstFakeMinute.topics[0].infoItems[0].details[0]._id;
       expect(sndFakeMinute.topics[0].infoItems[0].details[0]._id).to.equal(
         detailIdInFirstMinute,
@@ -242,9 +242,9 @@ describe("Migrate Version 12", function () {
     });
   });
 
-  describe("#down", function () {
-    beforeEach(function () {
-      let addCreatedInMinuteFakeAttribute = (topic) => {
+  describe("#down", () => {
+    beforeEach(() => {
+      const addCreatedInMinuteFakeAttribute = (topic) => {
         topic.createdInMinute = "fakeID";
       };
       firstFakeMinute.topics.forEach(addCreatedInMinuteFakeAttribute);
@@ -253,9 +253,9 @@ describe("Migrate Version 12", function () {
       fakeMeetingSeries.openTopics.forEach(addCreatedInMinuteFakeAttribute);
     });
 
-    it("removes the createdInMinute and _id-attribute", function () {
+    it("removes the createdInMinute and _id-attribute", () => {
       MigrateV12.down();
-      let checkDetailHasNoProperties = (detail) => {
+      const checkDetailHasNoProperties = (detail) => {
         expect(detail).not.have.ownProperty("createdInMinute");
         expect(detail).not.have.ownProperty("_id");
       };

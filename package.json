@@ -8,6 +8,9 @@
     "4m_commitshort": "1202f41f",
     "4m_releasedate": "2020-07-27"
   },
+  "engines": {
+    "node": ">=8.10.0"
+  },
   "description": "Simply the best free webapp for taking meeting minutes.  ;-)",
   "main": "4minitz.html",
   "directories": {
@@ -15,7 +18,8 @@
     "test": "test"
   },
   "scripts": {
-    "eslint": "eslint client/** imports/** server/**",
+    "nibble": "eslint-nibble --cache client/helpers client client/templates imports/** server/**",
+    "eslint": "eslint client/helpers imports/** server/**",
     "eslint:fix": "eslint --fix client/** imports/** server/**",
     "mdlint": "markdownlint -- ./*.md ./doc/**/*.md || true",
     "test": "npm run test:unit",
@@ -61,7 +65,6 @@
     "git-rev-sync": "^3.0.2",
     "jquery": "^3.3.1",
     "jquery-ui": "^1.13.3",
-    "jquery-ui-touch-punch": "^0.2.3",
     "ldapjs": "^3.0.7",
     "lodash": "^4.17.10",
     "md5-file": "^5.0.0",
@@ -74,12 +77,14 @@
     "path": "^0.12.7",
     "randomstring": "1.3.0",
     "semver": "^7.6.0",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "validator": "^13.11.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.24.5",
     "@babel/core": "^7.24.5",
     "@babel/eslint-parser": "^7.24.1",
+    "@babel/eslint-plugin": "^7.22.10",
     "@babel/plugin-transform-runtime": "^7.23.9",
     "@babel/preset-env": "^7.24.5",
     "@babel/register": "^7.23.7",
@@ -89,8 +94,19 @@
     "@wdio/mocha-framework": "^8.36.0",
     "@wdio/spec-reporter": "^8.36.0",
     "chai": "^4.1.2",
+    "chromedriver": "^118.0.1",
     "clone": "^2.1.1",
-    "eslint": "^9.1.1",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-lodash": "^7.4.0",
+    "eslint-plugin-meteor": "^7.3.0",
+    "eslint-plugin-mocha": "^10.2.0",
+    "eslint-plugin-mocha-cleanup": "^1.11.3",
+    "eslint-plugin-no-jquery": "^2.7.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-you-dont-need-lodash-underscore": "^6.13.0",
     "js-yaml": "^3.14.1",
     "markdownlint-cli": "^0.39.0",
     "meteor-sdk": "0.0.21",

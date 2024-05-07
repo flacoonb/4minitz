@@ -1,14 +1,18 @@
 /* USAGE INSTRUCTION:
- To call tests: simply import the QualityTestRunner into your .js file and use the run method of this class
- To add tests: have a look at the TestCase class. Simply add more tests by expanding the createTestCases-Method.
- To add new scenarios triggering tests: simply add an unique identifier for your scenario to QualityTestRunner.TRIGGERS, then create your tests.
+ To call tests: simply import the QualityTestRunner into your .js file and use
+ the run method of this class To add tests: have a look at the TestCase class.
+ Simply add more tests by expanding the createTestCases-Method. To add new
+ scenarios triggering tests: simply add an unique identifier for your scenario
+ to QualityTestRunner.TRIGGERS, then create your tests.
  */
-import { ConfirmationDialogFactory } from "../../client/helpers/confirmationDialogFactory";
 import { i18n } from "meteor/universe:i18n";
+
+import { ConfirmationDialogFactory } from "../../client/helpers/confirmationDialogFactory";
 
 export class QualityTestRunner {
   static TRIGGERS = {
-    // if you want to add new scenarios triggering test, add one unique string identifier here.
+    // if you want to add new scenarios triggering test, add one unique string
+    // identifier here.
     finalize: "finalize",
     sendAgenda: "sendAgenda",
   };
@@ -26,35 +30,35 @@ export class QualityTestRunner {
       QualityTestCase.createTestCases();
     }
 
-    //filter test cases
+    // filter test cases
     return QualityTestCase.testCases.filter((testCase) => {
       return testCase.triggers.includes(selectedTrigger);
     });
   }
 
   static run(selectedTrigger, testObject, callbackOnSuccess) {
-    //create test cases
+    // create test cases
     if (QualityTestCase.testCases.length === 0) {
       QualityTestCase.createTestCases();
     }
 
-    //filter test cases
-    let selectedTests = QualityTestCase.testCases.filter((testCase) => {
+    // filter test cases
+    const selectedTests = QualityTestCase.testCases.filter((testCase) => {
       return (
         testCase.triggers.includes(selectedTrigger) && testCase.condition()
       );
     });
 
-    //execute tests
-    let errors = [];
+    // execute tests
+    const errors = [];
     selectedTests.forEach((selectedTest) => {
-      let error = selectedTest.test(testObject);
+      const error = selectedTest.test(testObject);
       if (error) {
         errors.push(error);
       }
     });
 
-    //check if errors occured
+    // check if errors occured
     if (errors.length === 0) {
       callbackOnSuccess();
     } else {
@@ -62,7 +66,7 @@ export class QualityTestRunner {
         callbackOnSuccess,
         i18n.__("Dialog.ConfirmMinuteQualityAssurance.title"),
         "confirmMinuteQualityAssurance",
-        { errors: errors },
+        { errors },
         i18n.__("Dialog.ConfirmMinuteQualityAssurance.button"),
       ).show();
     }
@@ -73,10 +77,12 @@ class QualityTestCase {
   static testCases = [];
 
   constructor(testName, triggers, condition, test) {
-    this.testName = testName; //name of the test for list generation
-    this.triggers = triggers; //to determine to which scenarios applies
-    this.condition = condition; //checks if the test is to be run at all. For future purposes e.g. disabling tests via settings
-    this.test = test; // the test itself. Receives the minute object as a parameter, returns a string if the test fails, otherwise undefined
+    this.testName = testName; // name of the test for list generation
+    this.triggers = triggers; // to determine to which scenarios applies
+    this.condition = condition; // checks if the test is to be run at all. For future
+    // purposes e.g. disabling tests via settings
+    this.test = test; // the test itself. Receives the minute object as a parameter,
+    // returns a string if the test fails, otherwise undefined
   }
 
   static createTestCases() {
@@ -122,31 +128,29 @@ class QualityTestCase {
     );
     /*
         // an item is still edited (F)
-        QualityTestCase.testCases.push(new QualityTestCase('An item is still edited',
-            QualityTestRunner.TRIGGERS.finalize,
+        QualityTestCase.testCases.push(new QualityTestCase('An item is still
+       edited', QualityTestRunner.TRIGGERS.finalize,
             () => {return true;},
             (minute) => {
                 let itemIsEdited = false;
                 for (let topic of minute.topics) {
-                    if (topic.isEditedBy !== undefined || topic.isEditedDate !== undefined) {
-                        itemIsEdited = true;
-                        break;
+                    if (topic.isEditedBy !== undefined || topic.isEditedDate !==
+       undefined) { itemIsEdited = true; break;
                     }
                     for (let infoItem of topic.infoItems) {
-                        if (infoItem.isEditedBy !== undefined || infoItem.isEditedDate !== undefined) {
-                            itemIsEdited = true;
-                            break;
+                        if (infoItem.isEditedBy !== undefined ||
+       infoItem.isEditedDate !== undefined) { itemIsEdited = true; break;
                         }
                         for (let detail of infoItem.details) {
-                            if (detail.isEditedBy !== undefined || detail.isEditedDate !== undefined) {
-                                itemIsEdited = true;
-                                break;
+                            if (detail.isEditedBy !== undefined ||
+       detail.isEditedDate !== undefined) { itemIsEdited = true; break;
                             }
                         }
                     }
                 }
                 if(itemIsEdited)
-                    return i18n.__('Dialog.ConfirmMinuteQualityAssurance.warnEditing');;
+                    return
+       i18n.__('Dialog.ConfirmMinuteQualityAssurance.warnEditing');;
             }
         ));
 */
@@ -228,8 +232,8 @@ class QualityTestCase {
 
     // Topic checked, but no updated or new content (F)
     /* uncomment when details get a isNew-Property for easier code
-         QualityTestCase.testCases.push(new QualityTestCase('Topic is checked, but has no updated or new content',
-         QualityTestRunner.TRIGGERS.finalize,
+         QualityTestCase.testCases.push(new QualityTestCase('Topic is checked,
+       but has no updated or new content', QualityTestRunner.TRIGGERS.finalize,
             () => {return true;},
             (minute) => {
                 if(minute.topics.length < 0) return;
@@ -247,16 +251,16 @@ class QualityTestCase {
                             return;
                         }
 
-                        if(!infoItem.isSticky) return; // only sticky infoItems can have new content in their details
-                            infoItem.details.forEach(detail => { // detail is new
-                               if(detail.isNew)
-                                   noNewContent = true;
+                        if(!infoItem.isSticky) return; // only sticky infoItems
+       can have new content in their details infoItem.details.forEach(detail
+       => { // detail is new if(detail.isNew) noNewContent = true;
                             });
 
                         });
                 });
                 if(!noNewContent)
-                    return i18n.__('Dialog.ConfirmMinuteQualityAssurance.warnTopicNoNewContent');
+                    return
+       i18n.__('Dialog.ConfirmMinuteQualityAssurance.warnTopicNoNewContent');
             }
         ));
         */

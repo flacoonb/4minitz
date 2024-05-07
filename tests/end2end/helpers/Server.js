@@ -14,7 +14,7 @@ const ddpclient = new DDPClient({
 
 function connect() {
   const future = new Future();
-  ddpclient.connect(function (error) {
+  ddpclient.connect((error) => {
     if (error) {
       future.throw(error);
     }
@@ -32,30 +32,26 @@ function close() {
 function call() {
   const future = new Future();
 
-  ddpclient.call(
-    arguments[0],
-    [].slice.call(arguments, 1),
-    function (err, result) {
-      if (err) {
-        future.throw(err);
-      }
-      future.return(result);
-    },
-  );
+  ddpclient.call(arguments[0], [].slice.call(arguments, 1), (err, result) => {
+    if (err) {
+      future.throw(err);
+    }
+    future.return(result);
+  });
 
   return future;
 }
 
 const server = {
-  connect: function () {
+  connect() {
     return connect().wait();
   },
 
-  close: function () {
+  close() {
     close();
   },
 
-  call: function () {
+  call() {
     return call.apply(this, arguments).wait();
   },
 };

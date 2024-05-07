@@ -1,16 +1,17 @@
 import { _ } from "lodash";
 
-let isKeyword = function (token) {
+const isKeyword = function (token) {
   if (this.USER && token.startsWith(this.USER.key)) {
     return true;
   }
-  let arr = token.split(":");
+  const arr = token.split(":");
   return arr.length === 2 && this.isAllowedValueForKey(arr[0], arr[1]);
 };
 
-let getKeyWordFromToken = function (token, queryUserIdByName) {
-  let key, value, ids;
-  ids = [];
+const getKeyWordFromToken = function (token, queryUserIdByName) {
+  let key;
+  let value;
+  let ids = [];
   if (this.USER && token.startsWith(this.USER.key)) {
     key = this.USER.key;
     value = token.substr(1);
@@ -21,21 +22,21 @@ let getKeyWordFromToken = function (token, queryUserIdByName) {
       }
     }
   } else {
-    let arr = token.split(":");
+    const arr = token.split(":");
     key = arr[0];
     value = arr[1];
   }
   return {
-    key: key,
-    value: value,
-    ids: ids,
+    key,
+    value,
+    ids,
   };
 };
 
-let isAllowedValueForKey = function (key, value) {
+const isAllowedValueForKey = function (key, value) {
   key = key.toUpperCase();
   if (Object.prototype.hasOwnProperty.call(this, key)) {
-    let values = this[key].values;
+    const values = this[key].values;
     return values === "*" || _.includes(values, value);
   }
   return false;
@@ -79,11 +80,11 @@ export const ITEM_KEYWORDS = {
     example: '"@john" finds all action items assigned to the user john',
   },
 
-  isKeyword: isKeyword,
+  isKeyword,
 
-  getKeyWordFromToken: getKeyWordFromToken,
+  getKeyWordFromToken,
 
-  isAllowedValueForKey: isAllowedValueForKey,
+  isAllowedValueForKey,
 };
 
 export const TOPIC_KEYWORDS = {
@@ -116,9 +117,9 @@ export const TOPIC_KEYWORDS = {
     example: '"@john" finds all topics assigned to the user john',
   },
 
-  isKeyword: isKeyword,
+  isKeyword,
 
-  getKeyWordFromToken: getKeyWordFromToken,
+  getKeyWordFromToken,
 
-  isAllowedValueForKey: isAllowedValueForKey,
+  isAllowedValueForKey,
 };

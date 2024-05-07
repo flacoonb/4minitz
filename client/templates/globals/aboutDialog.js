@@ -1,54 +1,52 @@
-import { Meteor } from 'meteor/meteor';
-import { Session } from 'meteor/session';
-import { ReactiveVar } from 'meteor/reactive-var';
-import { Template } from 'meteor/templating';
-import { GlobalSettings } from '/imports/config/GlobalSettings';
+import { GlobalSettings } from "/imports/config/GlobalSettings";
+import { Meteor } from "meteor/meteor";
+import { ReactiveDict } from "meteor/reactive-dict";
+import { ReactiveVar } from "meteor/reactive-var";
+import { Template } from "meteor/templating";
 
-let showStatistics = new ReactiveVar(false);
+const showStatistics = new ReactiveVar(false);
 
-Template.aboutDialog.onRendered(function() {
-});
+Template.aboutDialog.onRendered(() => {});
 
 Template.aboutDialog.helpers({
-    gitVersionInfo: function () {
-        return Session.get('gitVersionInfo');
-    },
+  gitVersionInfo() {
+    return ReactiveDict.get("gitVersionInfo");
+  },
 
-    currentYear: function() {
-        return new Date().getFullYear();
-    },
+  currentYear() {
+    return new Date().getFullYear();
+  },
 
-    displayStatistics: function() {
-        return showStatistics.get();
-    },
+  displayStatistics() {
+    return showStatistics.get();
+  },
 
-    legalNoticeEnabled: function () {
-        return Meteor.settings.public.branding.legalNotice.enabled;
-    },
-    legalNoticeLinktext: function () {
-        return Meteor.settings.public.branding.legalNotice.linkText;
-    }
+  legalNoticeEnabled() {
+    return Meteor.settings.public.branding.legalNotice.enabled;
+  },
+  legalNoticeLinktext() {
+    return Meteor.settings.public.branding.legalNotice.linkText;
+  },
 });
 
 Template.aboutDialog.events({
-    'click #about-4minitz-logo' : function(){
-        showStatistics.set(!showStatistics.get());
-    },
+  "click #about-4minitz-logo"() {
+    showStatistics.set(!showStatistics.get());
+  },
 
-    'click #btnLegalNotice': function () {
-        $('#dlgAbout').modal('hide');
-        $('.modal-backdrop').remove();  // The backdrop was sticky - we remove it manually...
-        window.open(GlobalSettings.getLegalNoticeExternalUrl());
-    },
+  "click #btnLegalNotice"() {
+    $("#dlgAbout").modal("hide");
+    $(".modal-backdrop").remove(); // The backdrop was sticky - we remove it manually...
+    window.open(GlobalSettings.getLegalNoticeExternalUrl());
+  },
 
-    'show.bs.modal #dlgAbout': function () {
-        Meteor.call('gitVersionInfo', function (error, result) {
-            if (!error) {
-                Session.set('gitVersionInfo', result);
-            }
-            else {
-                console.log('err:'+error);
-            }
-        });
-    },
+  "show.bs.modal #dlgAbout"() {
+    Meteor.call("gitVersionInfo", (error, result) => {
+      if (error) {
+        console.error(`err:${error}`);
+      } else {
+        ReactiveDict.set("gitVersionInfo", result);
+      }
+    });
+  },
 });

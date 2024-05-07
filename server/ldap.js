@@ -1,8 +1,8 @@
+import { LdapSettings } from "/imports/config/LdapSettings";
 import { LDAP } from "meteor/babrahams:accounts-ldap";
 import { Meteor } from "meteor/meteor";
-import { LdapSettings } from "/imports/config/LdapSettings";
 
-let allowSelfSignedTLS = LdapSettings.allowSelfSignedTLS();
+const allowSelfSignedTLS = LdapSettings.allowSelfSignedTLS();
 if (allowSelfSignedTLS) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 }
@@ -10,13 +10,13 @@ if (allowSelfSignedTLS) {
 LDAP.searchField = LdapSettings.usernameAttribute();
 LDAP.searchValueType = "username";
 
-LDAP.bindValue = function (usernameOrEmail, isEmailAddress) {
+LDAP.bindValue = (usernameOrEmail, isEmailAddress) => {
   if (!LdapSettings.ldapEnabled()) {
     return "";
   }
 
-  const serverDn = LdapSettings.serverDn(),
-    searchDn = LdapSettings.usernameAttribute();
+  const serverDn = LdapSettings.serverDn();
+  const searchDn = LdapSettings.usernameAttribute();
 
   if (!serverDn || !searchDn) {
     return "";
@@ -27,12 +27,13 @@ LDAP.bindValue = function (usernameOrEmail, isEmailAddress) {
     : usernameOrEmail;
 
   // #Security
-  // If users have been imported with importUsers.js and "isInactivePredicate" was used to
-  // make some users isInactive==true - we stop them from logging in here.
+  // If users have been imported with importUsers.js and "isInactivePredicate"
+  // was used to make some users isInactive==true - we stop them from logging in
+  // here.
   if (Meteor?.users) {
     // skip this during unit tests
-    const uid = username.toLowerCase(),
-      user = Meteor.users.findOne({ username: uid });
+    const uid = username.toLowerCase();
+    const user = Meteor.users.findOne({ username: uid });
 
     if (user?.isInactive) {
       throw new Meteor.Error(403, "User is inactive");
@@ -46,7 +47,7 @@ LDAP.bindValue = function (usernameOrEmail, isEmailAddress) {
   return [searchDn, "=", username, ",", serverDn].join("");
 };
 
-LDAP.filter = function (isEmailAddress, usernameOrEmail) {
+LDAP.filter = (isEmailAddress, usernameOrEmail) => {
   if (!LdapSettings.ldapEnabled()) {
     return "";
   }
@@ -65,19 +66,15 @@ LDAP.filter = function (isEmailAddress, usernameOrEmail) {
   return ["(&(", searchField, "=", searchValue, ")", filter, ")"].join("");
 };
 
-LDAP.addFields = function (/*person - the ldap entry for that user*/) {
-  // this = ldap request object
-
-  return {
-    // overwrite the password to prevent local logins
-    password: "",
-  };
-};
+LDAP.addFields = () => ({
+  // overwrite the password to prevent local logins
+  password: "",
+});
 
 // Called after successful LDAP sign in
 if (LDAP.onSignIn) {
   // not available in unit test environment
-  LDAP.onSignIn(function (userDocument) {
+  LDAP.onSignIn((userDocument) => {
     Meteor.users.update(
       { _id: userDocument._id },
       { $set: { isLDAPuser: true } },
@@ -86,9 +83,9 @@ if (LDAP.onSignIn) {
 }
 
 LDAP.logging = false;
-LDAP.warn = function (message) {
+LDAP.warn = (message) => {
   console.warn(message);
 };
-LDAP.error = function (message) {
+LDAP.error = (message) => {
   console.error(message);
 };

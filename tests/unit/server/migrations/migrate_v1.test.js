@@ -4,7 +4,7 @@ import sinon from "sinon";
 
 import * as Helpers from "../../../../imports/helpers/date";
 
-let MinutesSchema = {
+const MinutesSchema = {
   minutes: [],
 
   find: function () {
@@ -19,7 +19,7 @@ let MinutesSchema = {
 };
 MinutesSchema.getCollection = (_) => MinutesSchema;
 
-let MeetingSeriesSchema = {
+const MeetingSeriesSchema = {
   series: [],
 
   find: function () {
@@ -53,17 +53,17 @@ const { MigrateV1 } = proxyquire("../../../../server/migrations/migrate_v1", {
  * @param checkUpdatedTopic callback to verify that the topic
  *        was modified correctly.
  */
-let checkUpdateMinuteCall = (minute, checkUpdatedTopic) => {
+const checkUpdateMinuteCall = (minute, checkUpdatedTopic) => {
   expect(MinutesSchema.update.calledOnce).to.be.true;
 
-  let updateCall = MinutesSchema.update.getCall(0);
+  const updateCall = MinutesSchema.update.getCall(0);
   expect(updateCall.args[0]).to.equal(minute._id);
 
-  let updateSetter = updateCall.args[1].$set;
+  const updateSetter = updateCall.args[1].$set;
   expect(Object.prototype.hasOwnProperty.call(updateSetter, "topics.0")).to.be
     .true;
 
-  let updatedTopic = updateSetter["topics.0"];
+  const updatedTopic = updateSetter["topics.0"];
   checkUpdatedTopic(updatedTopic);
 };
 
@@ -75,36 +75,36 @@ let checkUpdateMinuteCall = (minute, checkUpdatedTopic) => {
  * @param checkUpdatedTopic callback to verify that the topic
  *        was modified correctly.
  */
-let checkUpdateMeetingSeriesCall = (series, checkUpdatedTopic) => {
+const checkUpdateMeetingSeriesCall = (series, checkUpdatedTopic) => {
   expect(MeetingSeriesSchema.update.callCount).to.equal(2);
 
   // first call on open topics
-  let firstCall = MeetingSeriesSchema.update.getCall(0);
+  const firstCall = MeetingSeriesSchema.update.getCall(0);
   expect(firstCall.args[0]).to.equal(series._id);
 
-  let updateSetter1 = firstCall.args[1].$set;
+  const updateSetter1 = firstCall.args[1].$set;
   expect(Object.prototype.hasOwnProperty.call(updateSetter1, "openTopics.0")).to
     .be.true;
 
-  let updTopic = updateSetter1["openTopics.0"];
+  const updTopic = updateSetter1["openTopics.0"];
   checkUpdatedTopic(updTopic);
 
   // second call on closed topics
-  let sndCall = MeetingSeriesSchema.update.getCall(1);
+  const sndCall = MeetingSeriesSchema.update.getCall(1);
   expect(sndCall.args[0]).to.equal(series._id);
 
-  let updateSetter2 = sndCall.args[1].$set;
+  const updateSetter2 = sndCall.args[1].$set;
   expect(Object.prototype.hasOwnProperty.call(updateSetter2, "closedTopics.0"))
     .to.be.true;
 
-  let updClosedTopic = updateSetter2["closedTopics.0"];
+  const updClosedTopic = updateSetter2["closedTopics.0"];
   checkUpdatedTopic(updClosedTopic);
 };
 
-describe("Migrate Version 1", function () {
+describe("Migrate Version 1", () => {
   let series, minute, topic, closedTopic;
 
-  beforeEach(function () {
+  beforeEach(() => {
     topic = {
       subject: "Topic Subject",
       responsible: "person",
@@ -130,15 +130,15 @@ describe("Migrate Version 1", function () {
     MeetingSeriesSchema.insert(series);
   });
 
-  afterEach(function () {
+  afterEach(() => {
     MinutesSchema.update.resetHistory();
     MeetingSeriesSchema.update.resetHistory();
     MeetingSeriesSchema.series = [];
     MinutesSchema.minutes = [];
   });
 
-  describe("#up", function () {
-    let checkUpdatedTopic = (updatedTopic) => {
+  describe("#up", () => {
+    const checkUpdatedTopic = (updatedTopic) => {
       expect(updatedTopic).to.not.have.ownProperty("details");
       expect(updatedTopic).to.not.have.ownProperty("duedate");
       expect(updatedTopic).to.not.have.ownProperty("priority");
@@ -148,21 +148,21 @@ describe("Migrate Version 1", function () {
       expect(updatedTopic.infoItems).to.be.empty;
     };
 
-    it("modifies the topic of the minute in the minutes collection", function () {
+    it("modifies the topic of the minute in the minutes collection", () => {
       MigrateV1.up();
 
       checkUpdateMinuteCall(minute, checkUpdatedTopic);
     });
 
-    it("modifies the open/closed topics of a series", function () {
+    it("modifies the open/closed topics of a series", () => {
       MigrateV1.up();
 
       checkUpdateMeetingSeriesCall(series, checkUpdatedTopic);
     });
   });
 
-  describe("#down", function () {
-    let checkUpdatedTopic = (updatedTopic) => {
+  describe("#down", () => {
+    const checkUpdatedTopic = (updatedTopic) => {
       expect(updatedTopic).to.have.ownProperty("details");
       expect(updatedTopic).to.have.ownProperty("duedate");
       expect(updatedTopic).to.have.ownProperty("priority");
@@ -170,13 +170,13 @@ describe("Migrate Version 1", function () {
       expect(updatedTopic).to.not.have.ownProperty("infoItems");
     };
 
-    it("modifies the topic of the minute in the minutes collection", function () {
+    it("modifies the topic of the minute in the minutes collection", () => {
       MigrateV1.down();
 
       checkUpdateMinuteCall(minute, checkUpdatedTopic);
     });
 
-    it("modifies the open/closed topics of a series", function () {
+    it("modifies the open/closed topics of a series", () => {
       MigrateV1.down();
 
       checkUpdateMeetingSeriesCall(series, checkUpdatedTopic);

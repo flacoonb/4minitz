@@ -4,27 +4,24 @@ import { E2EMeetingSeries } from "./helpers/E2EMeetingSeries";
 import { E2EMinutes } from "./helpers/E2EMinutes";
 import { E2ETopics } from "./helpers/E2ETopics";
 
-describe("Minutes Finalize", function () {
+describe("Minutes Finalize", () => {
   const aProjectName = "E2E Minutes Finalize";
   let aMeetingCounter = 0;
-  let aMeetingNameBase = "Meeting Name #";
+  const aMeetingNameBase = "Meeting Name #";
   let aMeetingName;
 
-  before("reload page and reset app", function () {
+  before("reload page and reset app", () => {
     E2EGlobal.logTimestamp("Start test suite");
     E2EApp.resetMyApp(true);
     E2EApp.launchApp();
   });
 
-  beforeEach(
-    "goto start page and make sure test user is logged in",
-    function () {
-      E2EApp.gotoStartPage();
-      expect(E2EApp.isLoggedIn()).to.be.true;
-    },
-  );
+  beforeEach("goto start page and make sure test user is logged in", () => {
+    E2EApp.gotoStartPage();
+    expect(E2EApp.isLoggedIn()).to.be.true;
+  });
 
-  it("can finalize minutes", function () {
+  it("can finalize minutes", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
 
@@ -45,7 +42,7 @@ describe("Minutes Finalize", function () {
 
   // this test does only make sense if mail delivery is enabled
   if (E2EGlobal.SETTINGS.email?.enableMailDelivery) {
-    it("asks if emails should be sent before finalizing the minute", function () {
+    it("asks if emails should be sent before finalizing the minute", () => {
       aMeetingCounter++;
       aMeetingName = aMeetingNameBase + aMeetingCounter;
 
@@ -79,12 +76,12 @@ describe("Minutes Finalize", function () {
     });
   }
 
-  it("can not add minutes if unfinalized minutes exist", function () {
+  it("can not add minutes if unfinalized minutes exist", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
 
     E2EMeetingSeries.createMeetingSeries(aProjectName, aMeetingName);
-    let countInitialMinutes = E2EMinutes.countMinutesForSeries(
+    const countInitialMinutes = E2EMinutes.countMinutesForSeries(
       aProjectName,
       aMeetingName,
     );
@@ -116,12 +113,12 @@ describe("Minutes Finalize", function () {
     ).to.equal(countInitialMinutes + 1);
   });
 
-  it("can finalize minutes at later timepoint", function () {
+  it("can finalize minutes at later timepoint", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
 
     E2EMeetingSeries.createMeetingSeries(aProjectName, aMeetingName);
-    let countInitialMinutes = E2EMinutes.countMinutesForSeries(
+    const countInitialMinutes = E2EMinutes.countMinutesForSeries(
       aProjectName,
       aMeetingName,
     );
@@ -143,10 +140,10 @@ describe("Minutes Finalize", function () {
     ).to.equal(countInitialMinutes + 2);
   });
 
-  it("can not delete or finalize already finalized minutes", function () {
+  it("can not delete or finalize already finalized minutes", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
-    let myDate = "2015-03-17"; // date of first project commit ;-)
+    const myDate = "2015-03-17"; // date of first project commit ;-)
 
     E2EMeetingSeries.createMeetingSeries(aProjectName, aMeetingName);
     E2EMinutes.addMinutesToMeetingSeries(aProjectName, aMeetingName, myDate);
@@ -157,10 +154,10 @@ describe("Minutes Finalize", function () {
     expect(browser.isExisting("#btn_deleteMinutes")).to.be.false;
   });
 
-  it("can unfinalize minutes", function () {
+  it("can unfinalize minutes", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
-    let myDate = "2015-03-17"; // date of first project commit ;-)
+    const myDate = "2015-03-17"; // date of first project commit ;-)
 
     E2EMeetingSeries.createMeetingSeries(aProjectName, aMeetingName);
     E2EMinutes.addMinutesToMeetingSeries(aProjectName, aMeetingName, myDate);
@@ -176,7 +173,7 @@ describe("Minutes Finalize", function () {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
     console.log("Meeting: ", aProjectName, aMeetingName);
-    let myDate = "2015-05-14";
+    const myDate = "2015-05-14";
 
     E2EMeetingSeries.createMeetingSeries(aProjectName, aMeetingName);
     E2EMinutes.addMinutesToMeetingSeries(aProjectName, aMeetingName, myDate);
@@ -224,11 +221,11 @@ describe("Minutes Finalize", function () {
     ).to.equal(1);
   });
 
-  it("does show name of user that did finalize", function () {
+  it("does show name of user that did finalize", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
-    let myDate = "2015-03-17"; // date of first project commit ;-)
-    let currentUsername = E2EGlobal.SETTINGS.e2eTestUsers[0];
+    const myDate = "2015-03-17"; // date of first project commit ;-)
+    const currentUsername = E2EGlobal.SETTINGS.e2eTestUsers[0];
 
     E2EMeetingSeries.createMeetingSeries(aProjectName, aMeetingName);
     E2EMinutes.addMinutesToMeetingSeries(aProjectName, aMeetingName, myDate);
@@ -244,10 +241,10 @@ describe("Minutes Finalize", function () {
     expect(finalizedText).to.contain(currentUsername);
   });
 
-  it("prohibits editing date of finalized minutes", function () {
+  it("prohibits editing date of finalized minutes", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
-    let myDate = "2015-03-17"; // date of first project commit ;-)
+    const myDate = "2015-03-17"; // date of first project commit ;-)
 
     E2EMeetingSeries.createMeetingSeries(aProjectName, aMeetingName);
     E2EMinutes.addMinutesToMeetingSeries(aProjectName, aMeetingName, myDate);
@@ -263,11 +260,11 @@ describe("Minutes Finalize", function () {
     expect(dateOfMinutes).to.equal(myDate); // still same as above?
   });
 
-  it("prohibits unfinalizing of non-latest minutes", function () {
+  it("prohibits unfinalizing of non-latest minutes", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
-    let myDate1 = "2015-03-17"; // date of first project commit ;-)
-    let myDate2 = "2015-03-18";
+    const myDate1 = "2015-03-17"; // date of first project commit ;-)
+    const myDate2 = "2015-03-18";
 
     E2EMeetingSeries.createMeetingSeries(aProjectName, aMeetingName);
     E2EMinutes.addMinutesToMeetingSeries(aProjectName, aMeetingName, myDate1);
@@ -288,11 +285,11 @@ describe("Minutes Finalize", function () {
     expect(browser.isExisting("#btn_unfinalizeMinutes")).to.be.false;
   });
 
-  it("prohibits minutes on dates before the latest minutes", function () {
+  it("prohibits minutes on dates before the latest minutes", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
-    let myDate1 = "2015-03-17"; // date of first project commit ;-)
-    let myDate2 = "2010-01-01";
+    const myDate1 = "2015-03-17"; // date of first project commit ;-)
+    const myDate2 = "2010-01-01";
 
     E2EMeetingSeries.createMeetingSeries(aProjectName, aMeetingName);
     E2EMinutes.addMinutesToMeetingSeries(aProjectName, aMeetingName, myDate1);
@@ -303,14 +300,14 @@ describe("Minutes Finalize", function () {
     E2EMeetingSeries.gotoMeetingSeries(aProjectName, aMeetingName);
 
     expect(E2EMinutes.getMinutesId(myDate2)).not.to.be.ok;
-    let currentDateISO = E2EGlobal.formatDateISO8601(new Date());
+    const currentDateISO = E2EGlobal.formatDateISO8601(new Date());
     expect(E2EMinutes.getMinutesId(currentDateISO)).to.be.ok;
   });
 
-  it("prohibits two minutes on the same date", function () {
+  it("prohibits two minutes on the same date", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
-    let myDate1 = "2015-03-17"; // date of first project commit ;-)
+    const myDate1 = "2015-03-17"; // date of first project commit ;-)
 
     E2EMeetingSeries.createMeetingSeries(aProjectName, aMeetingName);
     E2EMinutes.addMinutesToMeetingSeries(aProjectName, aMeetingName, myDate1);
@@ -323,11 +320,11 @@ describe("Minutes Finalize", function () {
     expect(
       E2EMinutes.countMinutesForSeries(aProjectName, aMeetingName),
     ).to.equal(2);
-    let currentDateISO = E2EGlobal.formatDateISO8601(new Date());
+    const currentDateISO = E2EGlobal.formatDateISO8601(new Date());
     expect(E2EMinutes.getMinutesId(currentDateISO)).to.be.ok;
   });
 
-  it("cancel finalize Minutes, when warning-box appears", function () {
+  it("cancel finalize Minutes, when warning-box appears", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
 
@@ -346,7 +343,7 @@ describe("Minutes Finalize", function () {
     ).to.equal(1);
   });
 
-  it("process finalize Minutes, when warning-box appears", function () {
+  it("process finalize Minutes, when warning-box appears", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
 
@@ -365,7 +362,7 @@ describe("Minutes Finalize", function () {
     ).to.equal(1);
   });
 
-  it("update detail on pinned and not discussed item in next minute after finalizing item origin minute", function () {
+  it("update detail on pinned and not discussed item in next minute after finalizing item origin minute", () => {
     aMeetingCounter++;
     aMeetingName = aMeetingNameBase + aMeetingCounter;
 
@@ -376,8 +373,8 @@ describe("Minutes Finalize", function () {
 
     E2EMinutes.addMinutesToMeetingSeries(aProjectName, aMeetingName);
 
-    let aTopicName = "Topic";
-    let infoItemName = "Info Item";
+    const aTopicName = "Topic";
+    const infoItemName = "Info Item";
     E2ETopics.addTopicToMinutes(aTopicName);
     E2ETopics.addInfoItemToTopic(
       {
@@ -387,7 +384,7 @@ describe("Minutes Finalize", function () {
       1,
     );
 
-    let details = "Details";
+    const details = "Details";
     E2ETopics.addDetailsToActionItem(1, 1, details);
 
     E2ETopics.toggleInfoItemStickyState(1, 1);
@@ -395,11 +392,11 @@ describe("Minutes Finalize", function () {
 
     E2EMinutes.addMinutesToMeetingSeries(aProjectName, aMeetingName);
 
-    let detailsNew = "Updated Details";
+    const detailsNew = "Updated Details";
     E2ETopics.editDetailsForActionItem(1, 1, 1, detailsNew);
 
-    let itemsOfTopic = E2ETopics.getItemsForTopic(1);
-    let item = itemsOfTopic[0].ELEMENT;
+    const itemsOfTopic = E2ETopics.getItemsForTopic(1);
+    const item = itemsOfTopic[0].ELEMENT;
     expect(browser.elementIdText(item).value).to.have.string(detailsNew);
   });
 });

@@ -1,9 +1,11 @@
 import { Meteor } from "meteor/meteor";
 import { i18n } from "meteor/universe:i18n";
-import { TemplateRenderer } from "./../server_side_templates/TemplateRenderer";
-import { MailFactory } from "./MailFactory";
+
 import { GlobalSettings } from "../config/GlobalSettings";
 import { DocumentGeneration } from "../documentGeneration";
+
+import { TemplateRenderer } from "./../server_side_templates/TemplateRenderer";
+import { MailFactory } from "./MailFactory";
 
 export class TopicItemsMailHandler {
   constructor(sender, recipients, minute, templateName) {
@@ -45,7 +47,8 @@ export class TopicItemsMailHandler {
     ) {
       return this._currentRecipient.address;
     } else {
-      // we should send the mail to multiple recipients -> return array of strings
+      // we should send the mail to multiple recipients -> return array of
+      // strings
       return this._currentRecipient.map((recipient) => {
         return typeof recipient === "string" ? recipient : recipient.address;
       });
@@ -57,21 +60,14 @@ export class TopicItemsMailHandler {
   }
 
   _getSubjectPrefix() {
-    return (
-      "[" +
-      this._minute.parentMeetingSeries().project +
-      "] " +
-      this._minute.parentMeetingSeries().name +
-      " " +
-      i18n.__("Minutes.dateOn") +
-      " " +
-      this._minute.date
-    );
+    return `[${this._minute.parentMeetingSeries().project}] ${
+      this._minute.parentMeetingSeries().name
+    } ${i18n.__("Minutes.dateOn")} ${this._minute.date}`;
   }
 
   _buildMail(subject, emailData) {
     this._getMailer().setSubject(subject);
-    let tmplRenderer = this._getTmplRenderer();
+    const tmplRenderer = this._getTmplRenderer();
     tmplRenderer.addDataObject(emailData);
     DocumentGeneration.addHelperForHTMLMail(tmplRenderer, this);
 
@@ -80,7 +76,7 @@ export class TopicItemsMailHandler {
   }
 
   _getTmplRenderer() {
-    let recipientsName = Object.prototype.hasOwnProperty.call(
+    const recipientsName = Object.prototype.hasOwnProperty.call(
       this._currentRecipient,
       "name",
     )

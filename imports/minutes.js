@@ -1,13 +1,13 @@
 import "./collections/minutes_private";
-import "./helpers/promisedMethods";
 import "./collections/workflow_private";
+import "./helpers/promisedMethods";
 
 import { emailAddressRegExpMatch } from "/imports/helpers/email";
 import { subElementsHelper } from "/imports/helpers/subElements";
 import { User } from "/imports/user";
+import { _ } from "lodash";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
-import { _ } from "meteor/underscore";
 import { i18n } from "meteor/universe:i18n";
 
 import { ActionItem } from "./actionitem";
@@ -48,10 +48,10 @@ export class Minutes {
       return [];
     }
 
-    let sort = lastMintuesFirst ? -1 : 1;
-    let options = { sort: { date: sort } };
+    const sort = lastMintuesFirst ? -1 : 1;
+    const options = { sort: { date: sort } };
     if (limit) {
-      options["limit"] = limit;
+      options.limit = limit;
     }
     return Minutes.find({ _id: { $in: MinutesIDArray } }, options);
   }
@@ -86,7 +86,7 @@ export class Minutes {
         .find({ meetingSeries_id: parentSeriesID })
         .forEach((min) => {
           if (!min.isFinalized) {
-            let newparticipants = min.generateNewParticipants();
+            const newparticipants = min.generateNewParticipants();
             if (newparticipants) {
               // Write participants to database if they have changed
               MinutesSchema.update(
@@ -143,7 +143,7 @@ export class Minutes {
   }
 
   toString() {
-    return "Minutes: " + JSON.stringify(this, null, 4);
+    return `Minutes: ${JSON.stringify(this, null, 4)}`;
   }
 
   log() {
@@ -161,7 +161,7 @@ export class Minutes {
   // This also does a minimal update of collection!
   // method
   async removeTopic(id) {
-    let i = this._findTopicIndex(id);
+    const i = this._findTopicIndex(id);
     if (i !== undefined) {
       this.topics.splice(i, 1);
       return Meteor.callPromise("minutes.removeTopic", id);
@@ -169,7 +169,7 @@ export class Minutes {
   }
 
   findTopic(id) {
-    let i = this._findTopicIndex(id);
+    const i = this._findTopicIndex(id);
     if (i !== undefined) {
       return this.topics[i];
     }
@@ -204,7 +204,7 @@ export class Minutes {
    */
   hasOpenActionItems() {
     for (let i = this.topics.length; i-- > 0; ) {
-      let topic = new Topic(this, this.topics[i]);
+      const topic = new Topic(this, this.topics[i]);
       if (topic.hasOpenActionItem()) {
         return true;
       }
@@ -227,11 +227,11 @@ export class Minutes {
   async upsertTopic(topicDoc, insertPlacementTop = true) {
     let i = undefined;
 
-    if (!topicDoc._id) {
+    if (topicDoc._id) {
+      i = this._findTopicIndex(topicDoc._id); // try to find it
+    } else {
       // brand-new topic
       topicDoc._id = Random.id(); // create our own local _id here!
-    } else {
-      i = this._findTopicIndex(topicDoc._id); // try to find it
     }
 
     if (i === undefined) {
@@ -253,14 +253,14 @@ export class Minutes {
    * @returns ActionItem[]
    */
   getOpenActionItems(includeSkippedTopics = true) {
-    let nonSkippedTopics = includeSkippedTopics
+    const nonSkippedTopics = includeSkippedTopics
       ? this.topics
       : this.topics.filter((topic) => !topic.isSkipped);
 
     return nonSkippedTopics.reduce(
       (acc, topicDoc) => {
-        let topic = new Topic(this, topicDoc);
-        let actionItemDocs = topic.getOpenActionItems();
+        const topic = new Topic(this, topicDoc);
+        const actionItemDocs = topic.getOpenActionItems();
         return acc.concat(
           actionItemDocs.map((doc) => {
             return new ActionItem(topic, doc);
@@ -295,9 +295,9 @@ export class Minutes {
    * @returns {string[]} of user ids
    */
   getPersonsInformed() {
-    let informed = this.visibleFor;
+    const informed = this.visibleFor;
     if (this.informedUsers) {
-      informed = informed.concat(this.informedUsers);
+      return informed.concat(this.informedUsers);
     }
     return informed;
   }
@@ -311,12 +311,12 @@ export class Minutes {
    * @returns {Array}
    */
   getPersonsInformedWithEmail(userCollection) {
-    let recipientResult = this.getPersonsInformed().reduce(
+    const recipientResult = this.getPersonsInformed().reduce(
       (recipients, userId) => {
-        let user = userCollection.findOne(userId);
+        const user = userCollection.findOne(userId);
         if (user.emails && user.emails.length > 0) {
           recipients.push({
-            userId: userId,
+            userId,
             name: user.username,
             address: user.emails[0].address,
           });
@@ -329,7 +329,9 @@ export class Minutes {
     // search for mail addresses in additional participants and add them to
     // recipients
     if (this.participantsAdditional) {
-      let addMails = this.participantsAdditional.match(emailAddressRegExpMatch);
+      const addMails = this.participantsAdditional.match(
+        emailAddressRegExpMatch,
+      );
       if (addMails) {
         // addMails is null if there is no substring matching the email regular
         // expression
@@ -366,27 +368,27 @@ export class Minutes {
     }
     let changed = false;
 
-    let participantDict = {};
+    const participantDict = {};
     if (this.participants) {
       this.participants.forEach((participant) => {
         participantDict[participant.userId] = participant;
       });
     }
 
-    let newParticipants = this.visibleFor.map((userId) => {
-      if (!participantDict[userId]) {
+    const newParticipants = this.visibleFor.map((userId) => {
+      if (participantDict[userId]) {
+        // Participant stays without changes
+        const participant = participantDict[userId];
+        delete participantDict[userId];
+        return participant;
+      } else {
         // Participant has been added, insert with default values
         changed = true;
         return {
-          userId: userId,
+          userId,
           present: false,
           minuteKeeper: false,
         };
-      } else {
-        // Participant stays without changes
-        let participant = participantDict[userId];
-        delete participantDict[userId];
-        return participant;
       }
     });
     this.participants = newParticipants;
@@ -434,12 +436,12 @@ export class Minutes {
   getParticipants(userCollection) {
     if (userCollection) {
       return this.participants.map((participant) => {
-        let user = userCollection.findOne(participant.userId);
+        const user = userCollection.findOne(participant.userId);
         if (user) {
           participant.name = user.username;
           participant.profile = user.profile;
         } else {
-          participant.name = "Unknown " + participant.userId;
+          participant.name = `Unknown ${participant.userId}`;
         }
         return participant;
       });
@@ -464,19 +466,17 @@ export class Minutes {
    */
   getInformed(userCollection) {
     if (this.informedUsers) {
-      if (userCollection) {
-        return this.informedUsers.map((informed) => {
-          let user = userCollection.findOne(informed);
-          informed = {
-            id: informed,
-            name: user ? user.username : "Unknown " + informed,
-            profile: user ? user.profile : null,
-          };
-          return informed;
-        });
-      } else {
-        return this.informedUsers;
-      }
+      return userCollection
+        ? this.informedUsers.map((informed) => {
+            const user = userCollection.findOne(informed);
+            informed = {
+              id: informed,
+              name: user ? user.username : `Unknown ${informed}`,
+              profile: user ? user.profile : null,
+            };
+            return informed;
+          })
+        : this.informedUsers;
     }
 
     return [];
@@ -500,7 +500,7 @@ export class Minutes {
       _id: { $in: presentParticipantIds },
     });
 
-    let names = presentParticipants
+    const names = presentParticipants
       .map((p) => {
         const user = new User(p);
         return user.profileNameWithFallback();
@@ -509,14 +509,14 @@ export class Minutes {
       .join("; ");
 
     if (maxChars && names.length > maxChars) {
-      return names.substr(0, maxChars) + "...";
+      return `${names.substr(0, maxChars)}...`;
     }
 
     return names || i18n.__("Minutes.Participants.none");
   }
 
   checkParent() {
-    let parent = this.parentMeetingSeries();
+    const parent = this.parentMeetingSeries();
     if (!parent.hasMinute(this._id)) {
       throw new Meteor.Error("runtime-error", "Minute is an orphan!");
     }
@@ -528,12 +528,10 @@ export class Minutes {
   }
 
   static formatResponsibles(responsible, usernameField, isProfileAvaliable) {
-    if (isProfileAvaliable && responsible.profile && responsible.profile.name) {
-      responsible.fullname =
-        responsible[usernameField] + ` - ${responsible.profile.name}`;
-    } else {
-      responsible.fullname = responsible[usernameField];
-    }
+    responsible.fullname =
+      isProfileAvaliable && responsible.profile && responsible.profile.name
+        ? `${responsible[usernameField]} - ${responsible.profile.name}`
+        : responsible[usernameField];
     return responsible;
   }
 }

@@ -1,52 +1,52 @@
-import { Meteor } from "meteor/meteor";
-import { Template } from "meteor/templating";
-import { i18n } from "meteor/universe:i18n";
-import { Session } from "meteor/session";
-import { FlowRouter } from "meteor/ostrio:flow-router-extra";
+import "/imports/collections/onlineusers_private";
 
-import { Minutes } from "/imports/minutes";
-import { UserRoles } from "/imports/userroles";
-import { ReactiveVar } from "meteor/reactive-var";
 import { handleError } from "/client/helpers/handleError";
 import { OnlineUsersSchema } from "/imports/collections/onlineusers.schema";
-import "/imports/collections/onlineusers_private";
+import { Minutes } from "/imports/minutes";
+import { UserRoles } from "/imports/userroles";
+import { Meteor } from "meteor/meteor";
+import { FlowRouter } from "meteor/ostrio:flow-router-extra";
+import { ReactiveDict } from "meteor/reactive-dict";
+import { ReactiveVar } from "meteor/reactive-var";
+import { Template } from "meteor/templating";
+import { i18n } from "meteor/universe:i18n";
 
 let _minutesID; // the ID of these minutes
 
-let isEditable = function () {
-  let min = new Minutes(_minutesID);
+const isEditable = () => {
+  const min = new Minutes(_minutesID);
   return min.isCurrentUserModerator() && !min.isFinalized;
 };
 
-let isModeratorOfParentSeries = function (userId) {
-  let aMin = new Minutes(_minutesID);
-  let usrRole = new UserRoles(userId);
+const isModeratorOfParentSeries = (userId) => {
+  const aMin = new Minutes(_minutesID);
+  const usrRole = new UserRoles(userId);
   return usrRole.isModeratorOf(aMin.parentMeetingSeriesID());
 };
 
-let userNameForId = function (userId) {
-  let usr = Meteor.users.findOne(userId);
+const userNameForId = (userId) => {
+  const usr = Meteor.users.findOne(userId);
   if (usr) {
-    let showName = usr.username;
+    const showName = usr.username;
     // If we have a long name for the user: prepend it!
     if (usr.profile?.name && usr.profile.name !== "") {
-      showName = usr.profile.name + " (" + showName + ")";
+      return `${usr.profile.name} (${showName})`;
     }
     return showName;
   } else {
-    return "Unknown User (" + userId + ")";
+    return `Unknown User (${userId})`;
   }
 };
 
 function countParticipantsMarked() {
-  let aMin = new Minutes(_minutesID);
+  const aMin = new Minutes(_minutesID);
   return aMin.participants.filter((p) => {
     return p.present;
   }).length;
 }
 
 function allParticipantsMarked() {
-  let aMin = new Minutes(_minutesID);
+  const aMin = new Minutes(_minutesID);
   return (
     aMin.participants.findIndex((p) => {
       return !p.present;
@@ -57,7 +57,7 @@ function allParticipantsMarked() {
 Template.minutesEditParticipants.onCreated(function () {
   _minutesID = FlowRouter.getParam("_id");
   console.log(
-    "Template minutesEditParticipants created with minutesID " + _minutesID,
+    `Template minutesEditParticipants created with minutesID ${_minutesID}`,
   );
 
   this.autorun(() => {
@@ -65,9 +65,9 @@ Template.minutesEditParticipants.onCreated(function () {
   });
 
   // Calculate initial expanded/collapsed state
-  Session.set("participants.expand", false);
+  ReactiveDict.set("participants.expand", false);
   if (isEditable()) {
-    Session.set("participants.expand", true);
+    ReactiveDict.set("participants.expand", true);
   }
   this.markedAll = new ReactiveVar(allParticipantsMarked());
 });
@@ -75,61 +75,58 @@ Template.minutesEditParticipants.onCreated(function () {
 Template.minutesEditParticipants.helpers({
   countParticipantsText() {
     const count = countParticipantsMarked();
-    if (count === 1) {
-      return i18n.__("Minutes.Participants.solo");
-    } else {
-      return String(count) + " " + i18n.__("Minutes.Participants.title");
-    }
+    return count === 1
+      ? i18n.__("Minutes.Participants.solo")
+      : `${String(count)} ${i18n.__("Minutes.Participants.title")}`;
   },
 
   countAdditionalParticipantsText() {
-    let aMin = new Minutes(_minutesID);
-    let count = 0;
-    if (aMin.participantsAdditional && aMin.participantsAdditional.length > 0) {
-      count = aMin.participantsAdditional
-        .split(";")
-        .map((p) => {
-          return p.trim();
-        })
-        .filter((p) => {
-          return p.length > 0;
-        }).length;
-    }
+    const aMin = new Minutes(_minutesID);
+    const count =
+      aMin.participantsAdditional && aMin.participantsAdditional.length > 0
+        ? aMin.participantsAdditional
+            .split(";")
+            .map((p) => {
+              return p.trim();
+            })
+            .filter((p) => {
+              return p.length > 0;
+            }).length
+        : 0;
     if (count === 0) {
       return "";
     }
     if (count === 1) {
-      return ", " + i18n.__("Minutes.Participants.additionalSolo");
+      return `, ${i18n.__("Minutes.Participants.additionalSolo")}`;
     }
-    return ", " + count + " " + i18n.__("Minutes.Participants.additional");
+    return `, ${count} ${i18n.__("Minutes.Participants.additional")}`;
   },
 
   countInformedText() {
-    let aMin = new Minutes(_minutesID);
-    let count = aMin.informedUsers ? aMin.informedUsers.length : 0;
+    const aMin = new Minutes(_minutesID);
+    const count = aMin.informedUsers ? aMin.informedUsers.length : 0;
     if (count === 0) {
       return "";
     }
     if (count === 1) {
-      return ", " + i18n.__("Minutes.Participants.informedSolo");
+      return `, ${i18n.__("Minutes.Participants.informedSolo")}`;
     }
-    return ", " + count + " " + i18n.__("Minutes.Participants.informed");
+    return `, ${count} ${i18n.__("Minutes.Participants.informed")}`;
   },
 
   participantsSorted() {
-    let aMin = new Minutes(_minutesID);
-    let partSorted = aMin.participants;
+    const aMin = new Minutes(_minutesID);
+    const partSorted = aMin.participants;
     partSorted.forEach((p) => {
-      p["displayName"] = userNameForId(p.userId);
+      p.displayName = userNameForId(p.userId);
     });
-    partSorted = partSorted.sort(function (a, b) {
-      return a.displayName > b.displayName
+    return partSorted.sort((a, b) =>
+      a.displayName > b.displayName
         ? 1
         : b.displayName > a.displayName
         ? -1
-        : 0;
-    });
-    return partSorted;
+        : 0,
+    );
   },
 
   getUserDisplayName(userId) {
@@ -139,7 +136,7 @@ Template.minutesEditParticipants.helpers({
   isUserRemotelyConnected(userId) {
     return Boolean(
       OnlineUsersSchema.findOne({
-        userId: userId,
+        userId,
         activeRoute: FlowRouter.current().path,
       }),
     );
@@ -150,11 +147,11 @@ Template.minutesEditParticipants.helpers({
   },
 
   isParticipantsExpanded() {
-    return Session.get("participants.expand");
+    return ReactiveDict.get("participants.expand");
   },
 
   collapsedParticipantsNames() {
-    let aMin = new Minutes(_minutesID);
+    const aMin = new Minutes(_minutesID);
     return aMin.getPresentParticipantNames();
   },
 
@@ -166,32 +163,28 @@ Template.minutesEditParticipants.helpers({
   },
 
   disableUIControl() {
-    if (isEditable()) {
-      return "";
-    } else {
-      return { disabled: "disabled" };
-    }
+    return isEditable() ? "" : { disabled: "disabled" };
   },
 
   hasInformedUsers() {
-    let aMin = new Minutes(_minutesID);
+    const aMin = new Minutes(_minutesID);
     return aMin.informedUsers && aMin.informedUsers.length > 0;
   },
 
   getInformedUsers() {
-    let aMin = new Minutes(_minutesID);
+    const aMin = new Minutes(_minutesID);
     let informedNames = "";
     if (aMin.informedUsers && aMin.informedUsers.length > 0) {
       aMin.informedUsers.forEach((id) => {
-        informedNames = informedNames + userNameForId(id) + ", ";
+        informedNames = `${informedNames + userNameForId(id)}, `;
       });
-      informedNames = informedNames.slice(0, -2); // remove last ", "
+      return informedNames.slice(0, -2);
     }
     return informedNames;
   },
 
   switch2MultiColumn() {
-    let aMin = new Minutes(_minutesID);
+    const aMin = new Minutes(_minutesID);
 
     if (aMin.participants.length > 7) {
       return "multicolumn";
@@ -199,7 +192,7 @@ Template.minutesEditParticipants.helpers({
   },
 
   enoughParticipants() {
-    let aMin = new Minutes(_minutesID);
+    const aMin = new Minutes(_minutesID);
     return aMin.participants.length > 2;
   },
 
@@ -212,31 +205,34 @@ Template.minutesEditParticipants.helpers({
   },
 
   parentMeetingSeries() {
-    let aMin = new Minutes(_minutesID);
+    const aMin = new Minutes(_minutesID);
     return aMin.parentMeetingSeries();
   },
 });
 
 Template.minutesEditParticipants.events({
   "click .js-toggle-present"(evt, tmpl) {
-    let min = new Minutes(_minutesID);
-    let userId = evt.target.dataset.userid;
-    let checkedState = evt.target.checked;
+    const min = new Minutes(_minutesID);
+    const userId = evt.target.dataset.userid;
+    const checkedState = evt.target.checked;
     min.updateParticipantPresent(userId, checkedState);
     tmpl.markedAll.set(allParticipantsMarked());
   },
   "change #edtParticipantsAdditional"(evt, tmpl) {
-    let aMin = new Minutes(_minutesID);
-    let theParticipant = tmpl.find("#edtParticipantsAdditional").value;
+    const aMin = new Minutes(_minutesID);
+    const theParticipant = tmpl.find("#edtParticipantsAdditional").value;
     aMin.update({ participantsAdditional: theParticipant });
   },
 
   "click #btnParticipantsExpand"() {
-    Session.set("participants.expand", !Session.get("participants.expand"));
+    ReactiveDict.set(
+      "participants.expand",
+      !ReactiveDict.get("participants.expand"),
+    );
   },
 
   "click #btnToggleMarkAllNone"(evt, tmpl) {
-    let aMin = new Minutes(_minutesID);
+    const aMin = new Minutes(_minutesID);
     if (allParticipantsMarked()) {
       aMin.changeParticipantsStatus(false).catch(handleError);
       tmpl.markedAll.set(false);
@@ -247,6 +243,6 @@ Template.minutesEditParticipants.events({
   },
 
   "click #btnEditParticipants"() {
-    Session.set("meetingSeriesEdit.showUsersPanel", true);
+    ReactiveDict.set("meetingSeriesEdit.showUsersPanel", true);
   },
 });

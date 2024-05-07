@@ -1,24 +1,25 @@
-import { Meteor } from "meteor/meteor";
-import { Accounts } from "meteor/accounts-base";
-import { Migrations } from "meteor/percolate:migrations";
-
-import { MeetingSeriesSchema } from "./../../imports/collections/meetingseries.schema";
-import { MinutesSchema } from "./../../imports/collections/minutes.schema";
-import { TestMailCollection } from "/imports/mail/TestMail";
-import { Minutes } from "./../../imports/minutes";
 import { AttachmentsCollection } from "/imports/collections/attachments_private";
-import { DocumentsCollection } from "/imports/collections/documentgeneration_private";
 import { BroadcastMessageSchema } from "/imports/collections/broadcastmessages.schema";
+import { DocumentsCollection } from "/imports/collections/documentgeneration_private";
 import { TopicSchema } from "/imports/collections/topic.schema";
 import { DocumentGeneration } from "/imports/documentGeneration";
-import { TopicsFinder } from "../../imports/services/topicsFinder";
+import { TestMailCollection } from "/imports/mail/TestMail";
+import { Accounts } from "meteor/accounts-base";
+import { Meteor } from "meteor/meteor";
+import { Migrations } from "meteor/percolate:migrations";
 
 import { GlobalSettings } from "../../imports/config/GlobalSettings";
 import importUsers from "../../imports/ldap/import";
+import { TopicsFinder } from "../../imports/services/topicsFinder";
+
+import { MeetingSeriesSchema } from "./../../imports/collections/meetingseries.schema";
+import { MinutesSchema } from "./../../imports/collections/minutes.schema";
+import { Minutes } from "./../../imports/minutes";
 
 // Security: ensure that these methods only exist in End2End testing mode
 if (Meteor.settings.isEnd2EndTest) {
-  // Meteor.settings.isEnd2EndTest will be set via "--settings settings-test-end2end.json"
+  // Meteor.settings.isEnd2EndTest will be set via "--settings
+  // settings-test-end2end.json"
   console.log("End2End helpers loaded on server-side!");
 
   Meteor.methods({
@@ -29,42 +30,40 @@ if (Meteor.settings.isEnd2EndTest) {
       console.log("-------------------------- E2E-METHOD: resetMyApp ");
       AttachmentsCollection.remove({});
       console.log(
-        "Count AttachmentsCollection after reset:" +
-          AttachmentsCollection.find().count(),
+        `Count AttachmentsCollection after reset:${AttachmentsCollection.find().count()}`,
       );
       // remove the meeting series attachment dir
       MeetingSeriesSchema.getCollection()
         .find()
         .fetch()
         .forEach((ms) => {
-          removeMeetingSeriesAttachmentDir(ms._id); //eslint-disable-line
+          removeMeetingSeriesAttachmentDir(ms._id); // eslint-disable-line
         });
       MeetingSeriesSchema.remove({});
       console.log(
-        "Count MeetingSeries after reset:" + MeetingSeriesSchema.find().count(),
+        `Count MeetingSeries after reset:${MeetingSeriesSchema.find().count()}`,
       );
       MinutesSchema.remove({});
-      console.log("Count Minutes after reset:" + MinutesSchema.find().count());
+      console.log(`Count Minutes after reset:${MinutesSchema.find().count()}`);
       TestMailCollection.remove({});
       console.log(
-        "Count saved test mails after reset:" +
-          TestMailCollection.find().count(),
+        `Count saved test mails after reset:${TestMailCollection.find().count()}`,
       );
       BroadcastMessageSchema.remove({});
       TopicSchema.remove({});
       DocumentsCollection.remove({});
       console.log(
-        "Count Protocls after reset:" + DocumentsCollection.find().count(),
+        `Count Protocls after reset:${DocumentsCollection.find().count()}`,
       );
-      resetDocumentStorageDirectory(); //eslint-disable-line
+      resetDocumentStorageDirectory(); // eslint-disable-line
 
       if (!skipUsersCreation) {
         // Reset users and create our e2e test users
         Meteor.users.remove({});
-        for (let i in Meteor.settings.e2eTestUsers) {
-          let newUser = Meteor.settings.e2eTestUsers[i];
-          let newPassword = Meteor.settings.e2eTestPasswords[i];
-          let newEmail = Meteor.settings.e2eTestEmails[i];
+        for (const i in Meteor.settings.e2eTestUsers) {
+          const newUser = Meteor.settings.e2eTestUsers[i];
+          const newPassword = Meteor.settings.e2eTestPasswords[i];
+          const newEmail = Meteor.settings.e2eTestEmails[i];
           Accounts.createUser({
             username: newUser,
             password: newPassword,
@@ -74,9 +73,7 @@ if (Meteor.settings.isEnd2EndTest) {
             { username: newUser },
             { $set: { "emails.0.verified": true } },
           );
-          console.log(
-            "Created user: " + newUser + " with password: " + newPassword,
-          );
+          console.log(`Created user: ${newUser} with password: ${newPassword}`);
         }
         if (Meteor.settings.e2eAdminUser) {
           Meteor.users.update(
@@ -84,9 +81,9 @@ if (Meteor.settings.isEnd2EndTest) {
             { $set: { isAdmin: true } },
           );
         }
-      } else {
-        console.log("skip resetting users");
+        return;
       }
+      console.log("skip resetting users");
     },
     "e2e.getServerCurrentWorkingDir"() {
       console.log(
@@ -98,7 +95,7 @@ if (Meteor.settings.isEnd2EndTest) {
       console.log(
         "-------------------------- E2E-METHOD: getServerAttachmentsDir",
       );
-      return calculateAndCreateStoragePath(); //eslint-disable-line
+      return calculateAndCreateStoragePath(); // eslint-disable-line
     },
     "e2e.countMeetingSeriesInMongDB"() {
       console.log("-------------------------- E2E-METHOD: countMeetingSeries");
@@ -126,7 +123,7 @@ if (Meteor.settings.isEnd2EndTest) {
       console.log(
         "-------------------------- E2E-METHOD: getParticipantsString",
       );
-      let aMin = new Minutes(minutesId);
+      const aMin = new Minutes(minutesId);
       return aMin.getPresentParticipantNames();
     },
     "e2e.updateMeetingSeries"(id, doc) {
@@ -171,8 +168,9 @@ if (Meteor.settings.isEnd2EndTest) {
       console.log(
         "-------------------------- E2E-METHOD: setSettingsForProtocolGeneration",
       );
-      //This method sets the document generation to specific settings.
-      //An empty format parameter will lead to deactivation of the document generation
+      // This method sets the document generation to specific settings.
+      // An empty format parameter will lead to deactivation of the document
+      // generation
       if (!Meteor.settings.docGeneration) {
         Meteor.settings.docGeneration = {};
       }
@@ -194,19 +192,19 @@ if (Meteor.settings.isEnd2EndTest) {
       console.log(
         "-------------------------- E2E-METHOD: getProtocolStoragePathForMinute",
       );
-      let protocol = DocumentGeneration.getProtocolForMinute(minuteId);
+      const protocol = DocumentGeneration.getProtocolForMinute(minuteId);
       return protocol ? protocol.path : undefined;
     },
     "e2e.getProtocolLinkForMinute"(minuteId) {
       console.log(
         "-------------------------- E2E-METHOD: getProtocolLinkForMinute",
       );
-      let protocol = DocumentGeneration.getProtocolForMinute(minuteId);
+      const protocol = DocumentGeneration.getProtocolForMinute(minuteId);
       return protocol ? protocol.link() : undefined;
     },
     "e2e.getUserRole"(MSid, i) {
       console.log("-------------------------- E2E-METHOD: getUserRole");
-      let usr = Meteor.users.findOne({
+      const usr = Meteor.users.findOne({
         username: Meteor.settings.e2eTestUsers[i],
       });
       if (usr.roles?.[MSid] && usr.roles[MSid][0]) {
@@ -220,7 +218,7 @@ if (Meteor.settings.isEnd2EndTest) {
     },
     "e2e.getUserId"(i) {
       console.log("-------------------------- E2E-METHOD: getUserId");
-      let usr = Meteor.users.findOne({
+      const usr = Meteor.users.findOne({
         username: Meteor.settings.e2eTestUsers[i],
       });
       return usr._id;
@@ -229,12 +227,12 @@ if (Meteor.settings.isEnd2EndTest) {
       console.log(
         "-------------------------- E2E-METHOD: countTopicsInMongoDB",
       );
-      let minId = MinutesSchema.getCollection().findOne(minuteID);
+      const minId = MinutesSchema.getCollection().findOne(minuteID);
       return minId.topics.length;
     },
     "e2e.getTopics"(minuteID) {
       console.log("-------------------------- E2E-METHOD: getTopics");
-      let min = MinutesSchema.getCollection().findOne(minuteID);
+      const min = MinutesSchema.getCollection().findOne(minuteID);
       return min.topics;
     },
     "e2e.triggerMigration"(version) {
@@ -249,8 +247,8 @@ if (Meteor.settings.isEnd2EndTest) {
       return Meteor.users.find().count();
     },
     async "e2e.importLdapUsers"() {
-      const mongoUrl = process.env.MONGO_URL,
-        ldapSettings = GlobalSettings.getLDAPSettings();
+      const mongoUrl = process.env.MONGO_URL;
+      const ldapSettings = GlobalSettings.getLDAPSettings();
 
       await importUsers(ldapSettings, mongoUrl);
     },

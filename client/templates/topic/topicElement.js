@@ -1,21 +1,23 @@
-import { Minutes } from "/imports/minutes";
-import { Meteor } from "meteor/meteor";
-import { Template } from "meteor/templating";
-import { Session } from "meteor/session";
-import { ReactiveVar } from "meteor/reactive-var";
-import { $ } from "meteor/jquery";
 import { MeetingSeries } from "/imports/meetingseries";
+import { Minutes } from "/imports/minutes";
 import { Topic } from "/imports/topic";
-import { ConfirmationDialogFactory } from "../../helpers/confirmationDialogFactory";
-import { TopicInfoItemListContext } from "./topicInfoItemList";
+import { $ } from "meteor/jquery";
+import { Meteor } from "meteor/meteor";
+import { FlowRouter } from "meteor/ostrio:flow-router-extra";
+import { ReactiveVar } from "meteor/reactive-var";
+import { Session } from "meteor/session";
+import { Template } from "meteor/templating";
+import { i18n } from "meteor/universe:i18n";
+
 import { LabelResolver } from "../../../imports/services/labelResolver";
 import { ResponsibleResolver } from "../../../imports/services/responsibleResolver";
-import { labelSetFontColor } from "./helpers/label-set-font-color";
+import { ConfirmationDialogFactory } from "../../helpers/confirmationDialogFactory";
 import { handleError } from "../../helpers/handleError";
+
 import { detectTypeAndCreateItem } from "./helpers/create-item";
+import { labelSetFontColor } from "./helpers/label-set-font-color";
 import { resizeTextarea } from "./helpers/resize-textarea";
-import { FlowRouter } from "meteor/ostrio:flow-router-extra";
-import { i18n } from "meteor/universe:i18n";
+import { TopicInfoItemListContext } from "./topicInfoItemList";
 
 let _minutesId;
 const INITIAL_ITEMS_LIMIT = 4;
@@ -25,7 +27,7 @@ const isFeatureShowItemInputFieldOnDemandEnabled = () => {
 };
 
 Template.topicElement.onCreated(function () {
-  let tmplData = Template.instance().data;
+  const tmplData = Template.instance().data;
   _minutesId = tmplData.minutesID;
 
   this.isItemsLimited = new ReactiveVar(
@@ -53,33 +55,29 @@ Template.topicElement.helpers({
     return isFeatureShowItemInputFieldOnDemandEnabled();
   },
 
-  getLabels: function () {
-    let tmplData = Template.instance().data;
+  getLabels() {
+    const tmplData = Template.instance().data;
     return LabelResolver.resolveLabels(
       this.topic.labels,
       tmplData.parentMeetingSeriesId,
     ).map(labelSetFontColor);
   },
 
-  checkedState: function () {
-    if (this.topic.isOpen) {
-      return "";
-    } else {
-      return { checked: "checked" };
-    }
+  checkedState() {
+    return this.topic.isOpen ? "" : { checked: "checked" };
   },
 
-  disabledState: function () {
-    if (this.isEditable && !this.topic.isSkipped) {
-      return "";
-    } else {
-      return { disabled: "disabled" };
-    }
+  disabledState() {
+    return this.isEditable && !this.topic.isSkipped
+      ? ""
+      : { disabled: "disabled" };
   },
 
   // determine if this topic shall be rendered collapsed
   isCollapsed() {
-    let collapseState = Session.get("minutesedit.collapsetopics." + _minutesId);
+    const collapseState = Session.get(
+      `minutesedit.collapsetopics.${_minutesId}`,
+    );
     return collapseState ? collapseState[this.topic._id] : false;
   },
 
@@ -96,8 +94,8 @@ Template.topicElement.helpers({
       return responsible ? `(${responsible})` : "";
     } catch (e) {
       // intentionally left blank.
-      // on deletion of a topic blaze once calls this method on the just deleted topic
-      // we handle this gracefully with this empty exception handler
+      // on deletion of a topic blaze once calls this method on the just deleted
+      // topic we handle this gracefully with this empty exception handler
     }
     return "";
   },
@@ -133,7 +131,8 @@ Template.topicElement.helpers({
       (!this.minutesID &&
         !this.topic.isOpen &&
         new MeetingSeries(this.parentMeetingSeriesId).isCurrentUserModerator())
-    ); // Context: Closed Topic within MeetingSeries, user is moderator;
+    ); // Context: Closed Topic within
+    // MeetingSeries, user is moderator;
   },
 });
 
@@ -221,12 +220,12 @@ Template.topicElement.events({
       return;
     }
     console.log(
-      "Delete topics: " + this.topic._id + " from minutes " + this.minutesID,
+      `Delete topics: ${this.topic._id} from minutes ${this.minutesID}`,
     );
 
-    let aMin = new Minutes(this.minutesID);
+    const aMin = new Minutes(this.minutesID);
 
-    let topic = new Topic(this.minutesID, this.topic);
+    const topic = new Topic(this.minutesID, this.topic);
     const deleteAllowed = topic.isDeleteAllowed();
 
     if (!topic.isFinallyCompleted() || deleteAllowed) {
@@ -266,7 +265,7 @@ Template.topicElement.events({
   },
 
   "click #btnShowTopic"() {
-    FlowRouter.go("/topic/" + this.topic._id);
+    FlowRouter.go(`/topic/${this.topic._id}`);
   },
 
   "click .js-toggle-recurring"(evt) {
@@ -328,7 +327,7 @@ Template.topicElement.events({
       splitIndex === -1 ? "" : inputText.substring(splitIndex + 1).trim();
 
     const itemDoc = {
-      subject: subject,
+      subject,
       responsibles: [],
       createdInMinute: this.minutesID,
     };
@@ -349,12 +348,12 @@ Template.topicElement.events({
       handleError(error);
     });
 
-    let collapseState = Session.get("minutesedit.collapsetopics." + _minutesId);
+    let collapseState = Session.get(`minutesedit.collapsetopics.${_minutesId}`);
     if (!collapseState) {
       collapseState = {};
     }
     collapseState[this.topic._id] = false;
-    Session.set("minutesedit.collapsetopics." + _minutesId, collapseState);
+    Session.set(`minutesedit.collapsetopics.${_minutesId}`, collapseState);
 
     // Clean & focus for next usage after saving last item
     theItemTextarea.value = "";
@@ -376,26 +375,27 @@ Template.topicElement.events({
 
   "keydown #btnTopicExpandCollapse"(evt) {
     evt.preventDefault();
-    // since we do not have a link-href the link will not be clicked when hitting enter by default...
+    // since we do not have a link-href the link will not be clicked when
+    // hitting enter by default...
     if (evt.which === 13 /*enter*/) {
       evt.currentTarget.click();
     }
   },
 
   "click #btnTopicExpandCollapse"(evt) {
-    console.log("btnTopicExpandCollapse()" + this.topic._id);
+    console.log(`btnTopicExpandCollapse()${this.topic._id}`);
     evt.preventDefault();
-    let collapseState = Session.get("minutesedit.collapsetopics." + _minutesId);
+    let collapseState = Session.get(`minutesedit.collapsetopics.${_minutesId}`);
     if (!collapseState) {
       collapseState = {};
     }
     collapseState[this.topic._id] = !collapseState[this.topic._id];
-    Session.set("minutesedit.collapsetopics." + _minutesId, collapseState);
+    Session.set(`minutesedit.collapsetopics.${_minutesId}`, collapseState);
   },
 
   "click #btnReopenTopic"(evt) {
     evt.preventDefault();
-    let reopenTopic = () => {
+    const reopenTopic = () => {
       Meteor.call(
         "workflow.reopenTopicFromMeetingSeries",
         this.parentMeetingSeriesId,

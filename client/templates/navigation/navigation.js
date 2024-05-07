@@ -1,17 +1,18 @@
-import { Template } from "meteor/templating";
-import { Meteor } from "meteor/meteor";
 import { GlobalSettings } from "/imports/config/GlobalSettings";
+import { Meteor } from "meteor/meteor";
 import { FlowRouter } from "meteor/ostrio:flow-router-extra";
+import { ReactiveDict } from "meteor/reactive-dict";
+import { Template } from "meteor/templating";
 import { AccountsTemplates } from "meteor/useraccounts:core";
+
 import { IsEditedService } from "../../../imports/services/isEditedService";
-import { Session } from "meteor/session";
 
 Template.navigation.helpers({
-  logoHTML: function () {
+  logoHTML() {
     return GlobalSettings.getBrandingLogoHTML();
   },
   displayUsername() {
-    if (Meteor.user().profile && Meteor.user().profile.name) {
+    if (Meteor.user().profile?.name) {
       return Meteor.user().profile.name;
     }
     return Meteor.user().username;
@@ -19,31 +20,34 @@ Template.navigation.helpers({
 });
 
 Template.navigation.events({
-  "click li #navbar-signout": function (event) {
+  "click li #navbar-signout"(event) {
     event.preventDefault();
-    if (Meteor.userId()) {
-      IsEditedService.removeIsEditedOnLogout();
-
-      AccountsTemplates.logout();
-      FlowRouter.go("/");
+    if (!Meteor.userId()) {
+      return;
     }
+    IsEditedService.removeIsEditedOnLogout();
+
+    AccountsTemplates.logout();
+    FlowRouter.go("/");
   },
 
-  "click .navbar-brand": function () {
+  "click .navbar-brand"() {
     // When user clicks app logo
     // make sure user sees normal login sub template
     // (and not register / resend...) sub template
     AccountsTemplates.setState("signIn");
 
-    Session.set("gotoMeetingSeriesTab", true);
+    ReactiveDict.set("gotoMeetingSeriesTab", true);
   },
 
-  "click #navbar-dlgEditProfile": function (evt, tmpl) {
-    Session.set("editProfile.userID"); // per default use "current" user. Admin may edit others
+  "click #navbar-dlgEditProfile"(evt, tmpl) {
+    ReactiveDict.set("editProfile.userID"); // per default use "current" user.
+    // Admin may edit others
+
     tmpl.$("#dlgEditProfile").modal("show");
   },
 
-  "click #navbar-dlgLocale": function (evt, tmpl) {
+  "click #navbar-dlgLocale"(evt, tmpl) {
     tmpl.$("#dlgLocale").modal("show");
   },
 });

@@ -6,9 +6,9 @@ import "./helpers/promisedMethods";
 import "./collections/minutes_private";
 
 import { subElementsHelper } from "/imports/helpers/subElements";
+import { _ } from "lodash";
 import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
-import { _ } from "meteor/underscore";
 
 import { InfoItem } from "./infoitem";
 import { InfoItemFactory } from "./InfoItemFactory";
@@ -17,9 +17,9 @@ import { Minutes } from "./minutes";
 
 function resolveParentElement(parent) {
   if (typeof parent === "string") {
-    let parentId = parent;
+    const parentId = parent;
     parent = MeetingSeries.findOne(parentId);
-    if (!parent) parent = Minutes.findOne(parentId);
+    if (!parent) return Minutes.findOne(parentId);
     return parent;
   }
 
@@ -95,7 +95,7 @@ export class Topic {
    * @returns {boolean}
    */
   static hasOpenActionItem(topicDoc) {
-    let infoItemDocs = topicDoc.infoItems;
+    const infoItemDocs = topicDoc.infoItems;
     let i;
     for (i = 0; i < infoItemDocs.length; i++) {
       if (infoItemDocs[i].itemType === "actionItem" && infoItemDocs[i].isOpen) {
@@ -107,7 +107,7 @@ export class Topic {
 
   // ################### object methods
   toString() {
-    return "Topic: " + JSON.stringify(this._topicDoc, null, 4);
+    return `Topic: ${JSON.stringify(this._topicDoc, null, 4)}`;
   }
 
   log() {
@@ -117,7 +117,7 @@ export class Topic {
   invalidateIsNewFlag() {
     this._topicDoc.isNew = false;
     this._topicDoc.infoItems.forEach((infoItemDoc) => {
-      let infoItem = InfoItemFactory.createInfoItem(this, infoItemDoc);
+      const infoItem = InfoItemFactory.createInfoItem(this, infoItemDoc);
       infoItem.invalidateIsNewFlag();
     });
   }
@@ -156,11 +156,9 @@ export class Topic {
 
   toggleSkip(forceOpenTopic = true) {
     this.getDocument().isSkipped = !this.isSkipped();
-    if (forceOpenTopic) {
-      if (this.isSkipped() && !this._topicDoc.isOpen) {
-        // topic has been set to skip, so it will be automatically set as open
-        this.toggleState();
-      }
+    if (forceOpenTopic && this.isSkipped() && !this._topicDoc.isOpen) {
+      // topic has been set to skip, so it will be automatically set as open
+      this.toggleState();
     }
   }
 
@@ -169,14 +167,14 @@ export class Topic {
       saveChanges = true;
     }
     let i = undefined;
-    if (!topicItemDoc._id) {
-      // brand-new topicItem
-      topicItemDoc._id = Random.id(); // create our own local _id here!
-    } else {
+    if (topicItemDoc._id) {
       i = subElementsHelper.findIndexById(
         topicItemDoc._id,
         this.getInfoItems(),
       );
+    } else {
+      // brand-new topicItem
+      topicItemDoc._id = Random.id(); // create our own local _id here!
     }
     if (i === undefined) {
       // topicItem not in array
@@ -200,8 +198,8 @@ export class Topic {
   }
 
   async removeInfoItem(id) {
-    let index = subElementsHelper.findIndexById(id, this.getInfoItems());
-    let item = this.getInfoItems()[index];
+    const index = subElementsHelper.findIndexById(id, this.getInfoItems());
+    const item = this.getInfoItems()[index];
     if (
       InfoItem.isActionItem(item) &&
       !InfoItem.isCreatedInMinutes(item, this._parentMinutes._id)
@@ -227,7 +225,7 @@ export class Topic {
   tailorTopic() {
     this._topicDoc.infoItems = this._topicDoc.infoItems.filter(
       (infoItemDoc) => {
-        let infoItem = InfoItemFactory.createInfoItem(this, infoItemDoc);
+        const infoItem = InfoItemFactory.createInfoItem(this, infoItemDoc);
         return infoItem.isSticky();
       },
     );
@@ -241,7 +239,7 @@ export class Topic {
    * @returns {undefined|InfoItem|ActionItem}
    */
   findInfoItem(id) {
-    let i = subElementsHelper.findIndexById(id, this.getInfoItems());
+    const i = subElementsHelper.findIndexById(id, this.getInfoItems());
     if (i !== undefined) {
       return InfoItemFactory.createInfoItem(this, this.getInfoItems()[i]);
     }
@@ -348,7 +346,7 @@ export class Topic {
    * @return {boolean}
    */
   hasResponsibles() {
-    let responsibles = this._topicDoc.responsibles;
+    const responsibles = this._topicDoc.responsibles;
     return responsibles && responsibles.length > 0;
   }
 

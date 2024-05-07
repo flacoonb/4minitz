@@ -2,32 +2,32 @@ import { expect } from "chai";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
 
-let Meteor = {};
+const Meteor = {};
 
-let MinutesSchemaCollection = { update: sinon.spy() };
-let MinutesSchema = { find: sinon.stub(), getCollection: sinon.stub() };
+const MinutesSchemaCollection = { update: sinon.spy() };
+const MinutesSchema = { find: sinon.stub(), getCollection: sinon.stub() };
 
 const { MigrateV24 } = proxyquire("../../../../server/migrations/migrate_v24", {
   "meteor/meteor": { Meteor, "@noCallThru": true },
   "/imports/collections/minutes.schema": { MinutesSchema, "@noCallThru": true },
 });
 
-describe("MigrateV24", function () {
-  describe("#up", function () {
+describe("MigrateV24", () => {
+  describe("#up", () => {
     const FakeMinutes = { topics: [{ infoItems: [{ details: [] }] }] };
 
-    beforeEach(function () {
+    beforeEach(() => {
       MinutesSchema.find.returns([FakeMinutes]);
       MinutesSchema.getCollection.returns(MinutesSchemaCollection);
     });
 
-    afterEach(function () {
+    afterEach(() => {
       MinutesSchema.find.reset();
       MinutesSchemaCollection.update.resetHistory();
       MinutesSchema.getCollection.reset();
     });
 
-    it("calls the update method for every minutes", function () {
+    it("calls the update method for every minutes", () => {
       MigrateV24.up();
 
       const expectedNumberOfCallsToUpdate = 1;

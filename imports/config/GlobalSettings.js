@@ -1,6 +1,6 @@
-import { Meteor } from "meteor/meteor";
 import { LdapSettings } from "/imports/config/LdapSettings";
-import _ from "lodash";
+import { _ } from "lodash";
+import { Meteor } from "meteor/meteor";
 
 function getSetting(path, def = undefined) {
   return _.get(Meteor.settings, path, def);
@@ -47,7 +47,8 @@ export class GlobalSettings {
       Meteor.settings.branding &&
       Meteor.settings.branding.createDemoAccount !== undefined
         ? Meteor.settings.branding.createDemoAccount
-        : false; // #Security: if this setting is not present, we will *NOT* create a demo user account!
+        : false; // #Security: if this setting is not present, we will *NOT*
+    // create a demo user account!
 
     Meteor.settings.public.branding.legalNotice =
       Meteor.settings.branding &&
@@ -116,21 +117,21 @@ export class GlobalSettings {
     Meteor.settings.public.isEnd2EndTest = Meteor.settings.isEnd2EndTest;
 
     // enforce slash "/" at the end
-    if (Meteor.settings.attachments?.storagePath) {
-      if (!Meteor.settings.attachments.storagePath.match(/\/$/)) {
-        Meteor.settings.attachments.storagePath =
-          Meteor.settings.attachments.storagePath + "/";
-      }
+    if (
+      Meteor.settings.attachments?.storagePath &&
+      !Meteor.settings.attachments.storagePath.match(/\/$/)
+    ) {
+      Meteor.settings.attachments.storagePath = `${Meteor.settings.attachments.storagePath}/`;
     }
 
     LdapSettings.publish();
   }
 
   static getAdminIDs() {
-    let adminIDs = [];
+    const adminIDs = [];
 
     if (Meteor.settings.adminIDs && Array.isArray(Meteor.settings.adminIDs)) {
-      adminIDs = adminIDs.concat(Meteor.settings.adminIDs);
+      return adminIDs.concat(Meteor.settings.adminIDs);
     }
 
     return adminIDs;
@@ -204,7 +205,7 @@ export class GlobalSettings {
       Meteor.settings.email.defaultEMailSenderExceptionDomains &&
       Meteor.settings.email.defaultEMailSenderExceptionDomains.length > 0
     ) {
-      let senderDomain = alternativeSender.replace(/^.*@/, "").toLowerCase(); // me@mycompany.com => mycompany.com
+      const senderDomain = alternativeSender.replace(/^.*@/, "").toLowerCase(); // me@mycompany.com => mycompany.com
       for (
         let i = 0;
         i < Meteor.settings.email.defaultEMailSenderExceptionDomains.length;
@@ -227,7 +228,8 @@ export class GlobalSettings {
         // but it's empty!
         return alternativeSender // luckily we have a real user profile mail
           ? alternativeSender // we take it!
-          : GlobalSettings.getFallbackEMailSenderAddress(); // nope. use fallback!
+          : GlobalSettings.getFallbackEMailSenderAddress(); // nope. use
+        // fallback!
       } else {
         return address;
       }
@@ -266,27 +268,30 @@ export class GlobalSettings {
   }
 
   static sendVerificationEmail() {
-    const mailEnabled = getSetting("email.enableMailDelivery", false),
-      sendVerificationEmail = getSetting("email.sendVerificationEmail", false);
+    const mailEnabled = getSetting("email.enableMailDelivery", false);
+    const sendVerificationEmail = getSetting(
+      "email.sendVerificationEmail",
+      false,
+    );
     return mailEnabled && sendVerificationEmail;
   }
 
   static showResendVerificationEmailLink() {
-    const mailEnabled = getSetting("email.enableMailDelivery", false),
-      showResendVerificationEmailLink = getSetting(
-        "email.showResendVerificationEmailLink",
-        false,
-      );
+    const mailEnabled = getSetting("email.enableMailDelivery", false);
+    const showResendVerificationEmailLink = getSetting(
+      "email.showResendVerificationEmailLink",
+      false,
+    );
 
     return mailEnabled && showResendVerificationEmailLink;
   }
 
   static showForgotPasswordLink() {
-    const mailEnabled = getSetting("email.enableMailDelivery", false),
-      showForgotPasswordLink = getSetting(
-        "email.showForgotPasswordLink",
-        false,
-      );
+    const mailEnabled = getSetting("email.enableMailDelivery", false);
+    const showForgotPasswordLink = getSetting(
+      "email.showForgotPasswordLink",
+      false,
+    );
 
     return mailEnabled && showForgotPasswordLink;
   }

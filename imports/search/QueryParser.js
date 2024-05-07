@@ -13,7 +13,8 @@ export class QueryParser {
 
   /**
    * @typedef {Object} LabelToken
-   * @property {string} token The search-word which was detected in the search query
+   * @property {string} token The search-word which was detected in the search
+   * query
    * @property {string[]} ids The matching label ids.
    */
 
@@ -57,23 +58,21 @@ export class QueryParser {
   }
 
   isCaseSensitive() {
-    if (this.queryParsed) {
-      return this.matchCase;
-    } else {
-      return this.query.indexOf("do:match-case") !== -1;
-    }
+    return this.queryParsed
+      ? this.matchCase
+      : this.query.indexOf("do:match-case") !== -1;
   }
 
   hasKeyword(key, value) {
-    let keywords = this.findKeywordsByKey(key, value);
+    const keywords = this.findKeywordsByKey(key, value);
     return keywords.length > 0;
   }
 
   findKeywordsByKey(key, value) {
-    let keywords = [];
+    const keywords = [];
     key = typeof key === "string" ? key : key.key;
     for (let i = 0; i < this.filterTokens.length; i++) {
-      let token = this.filterTokens[i];
+      const token = this.filterTokens[i];
       if (token.key === key && ((value && value === token.value) || !value)) {
         keywords.push(token);
       }
@@ -114,7 +113,7 @@ export class QueryParser {
   }
 
   _parseToken(token) {
-    let tokenType = this._getTokenType(token);
+    const tokenType = this._getTokenType(token);
     switch (tokenType) {
       case TOKEN_TYPE_FILTER: {
         this._addFilterToken(token);
@@ -122,7 +121,7 @@ export class QueryParser {
       }
 
       case TOKEN_TYPE_LABEL: {
-        let result = this._addLabelToken(token);
+        const result = this._addLabelToken(token);
         if (!result) {
           this.searchTokens.push(token);
         }
@@ -153,8 +152,8 @@ export class QueryParser {
   }
 
   _isFilterKeyword(token) {
-    let arr = token.split(":");
-    let res = this.keywords.isKeyword(token);
+    const arr = token.split(":");
+    const res = this.keywords.isKeyword(token);
     if (
       Object.prototype.hasOwnProperty.call(this.keywords, "DO") &&
       res &&
@@ -186,8 +185,8 @@ export class QueryParser {
       }
       this.currentLabel = token.substr(1);
     } else {
-      completeLabel = this.currentLabel + ` ${token}`; // prepend whitespace!
-      let matchingIds = this.queryLabelIdsByName
+      completeLabel = `${this.currentLabel} ${token}`; // prepend whitespace!
+      const matchingIds = this.queryLabelIdsByName
         ? this.queryLabelIdsByName(completeLabel, this.isCaseSensitive())
         : true;
       if (
@@ -211,13 +210,13 @@ export class QueryParser {
   }
 
   _addCompleteLabelToken() {
-    let token = this.currentLabel;
-    let ids = this.queryLabelIdsByName
+    const token = this.currentLabel;
+    const ids = this.queryLabelIdsByName
       ? this.queryLabelIdsByName(token, this.isCaseSensitive())
       : [token];
     this.labelTokens.push({
-      token: token,
-      ids: ids,
+      token,
+      ids,
     });
   }
 

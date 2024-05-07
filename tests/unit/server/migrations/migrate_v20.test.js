@@ -5,14 +5,14 @@ import sinon from "sinon";
 const FIRST_MIN_ID = "#Min01";
 const SND_MIN_ID = "#Min02";
 
-let MinutesSchema = { update: sinon.stub() };
+const MinutesSchema = { update: sinon.stub() };
 MinutesSchema.getCollection = (_) => MinutesSchema;
 
-let TopicSchema = { update: sinon.stub() };
+const TopicSchema = { update: sinon.stub() };
 TopicSchema.getCollection = (_) => TopicSchema;
 
 class MeteorError {}
-let Meteor = { Error: MeteorError };
+const Meteor = { Error: MeteorError };
 
 const Random = {
   i: 1,
@@ -28,10 +28,10 @@ const { MigrateV20 } = proxyquire("../../../../server/migrations/migrate_v20", {
   "/imports/collections/topic.schema": { TopicSchema, "@noCallThru": true },
 });
 
-describe("Migrate Version 20", function () {
+describe("Migrate Version 20", () => {
   let firstFakeMinute, sndFakeMinute, fakeTopic;
 
-  beforeEach(function () {
+  beforeEach(() => {
     firstFakeMinute = {
       _id: FIRST_MIN_ID,
       topics: [
@@ -95,17 +95,17 @@ describe("Migrate Version 20", function () {
     };
   });
 
-  afterEach(function () {
+  afterEach(() => {
     MinutesSchema.update.resetHistory();
     TopicSchema.update.resetHistory();
   });
 
-  describe("#up", function () {
-    let checkDetailHasProperty = (detail) => {
+  describe("#up", () => {
+    const checkDetailHasProperty = (detail) => {
       expect(detail).to.have.ownProperty("isNew");
     };
 
-    it("adds new field to all topics in topicCollection", function () {
+    it("adds new field to all topics in topicCollection", () => {
       MigrateV20.up();
       fakeTopic.infoItems.forEach((infoItem) => {
         if (infoItem.details) {
@@ -114,7 +114,7 @@ describe("Migrate Version 20", function () {
       });
     });
 
-    it("adds new field to all topics in minutes", function () {
+    it("adds new field to all topics in minutes", () => {
       MigrateV20.up();
       firstFakeMinute.topics.forEach((topic) => {
         topic.infoItems.forEach((infoItem) => {
@@ -135,7 +135,7 @@ describe("Migrate Version 20", function () {
 
     // only checks minutes because topic collection will be overriden with next
     // finalize anyways
-    it("sets the correct isNew-attribute for all details in minutes", function () {
+    it("sets the correct isNew-attribute for all details in minutes", () => {
       MigrateV20.up();
       expect(firstFakeMinute.topics[0].infoItems[0].details[0].isNew).to.equal(
         true,
@@ -159,9 +159,9 @@ describe("Migrate Version 20", function () {
     });
   });
 
-  describe("#down", function () {
-    beforeEach(function () {
-      let addIsNewToDetail = (topic) => {
+  describe("#down", () => {
+    beforeEach(() => {
+      const addIsNewToDetail = (topic) => {
         topic.infoItems.forEach((infoItem) => {
           if (infoItem.details) {
             infoItem.details.forEach((detail) => {
@@ -175,13 +175,13 @@ describe("Migrate Version 20", function () {
       addIsNewToDetail(fakeTopic);
     });
 
-    it("removes the isNew attribute", function () {
+    it("removes the isNew attribute", () => {
       MigrateV20.down();
-      let checkDetailHasNoProperty = (detail) => {
+      const checkDetailHasNoProperty = (detail) => {
         expect(detail).not.have.ownProperty("isNew");
       };
 
-      let checkTopics = (topic) => {
+      const checkTopics = (topic) => {
         topic.infoItems.forEach((infoItem) => {
           if (infoItem.details) {
             infoItem.details.forEach(checkDetailHasNoProperty);

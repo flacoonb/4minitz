@@ -8,7 +8,7 @@ const DIALOG_TEMPLATE = Template.confirmationDialog;
 
 export class ConfirmationDialog {
   constructor(options, callbacks = {}) {
-    this.options = _.extend(
+    this.options = _.assignIn(
       {
         title: i18n.__("Dialog.ConfirmDelete.title"),
         content: i18n.__("Dialog.ConfirmDelete.body"),
@@ -20,9 +20,9 @@ export class ConfirmationDialog {
       },
       options,
     ); // overwrite above defaults with given options
-    this.callback = _.extend(
+    this.callback = _.assignIn(
       {
-        onSuccess: function () {},
+        onSuccess() {},
       },
       callbacks,
     );
@@ -45,7 +45,7 @@ export class ConfirmationDialog {
   }
 
   _renderDialog() {
-    let dialogData = this.options;
+    const dialogData = this.options;
     this.dialogTmpl = Blaze.renderWithData(
       this.dialogTemplate,
       dialogData,
@@ -55,9 +55,10 @@ export class ConfirmationDialog {
   }
 
   _renderContentTemplate() {
-    let tmplOpt = this.options.template;
+    const tmplOpt = this.options.template;
     if (tmplOpt) {
-      let template = typeof tmplOpt === "string" ? Template[tmplOpt] : tmplOpt;
+      const template =
+        typeof tmplOpt === "string" ? Template[tmplOpt] : tmplOpt;
       Blaze.renderWithData(
         template,
         this.options.templateData,
