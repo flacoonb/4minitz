@@ -1,5 +1,5 @@
-import { E2EGlobal } from "./E2EGlobal";
 import { E2EApp } from "./E2EApp";
+import { E2EGlobal } from "./E2EGlobal";
 import { E2EMeetingSeries } from "./E2EMeetingSeries";
 import { E2EMinutesParticipants } from "./E2EMinutesParticipants";
 
@@ -53,7 +53,8 @@ export class E2EMinutes {
    *
    * @param confirmDialog should the dialog be confirmed automatically
    *                      default: true
-   *        processFinalize is true, when you want to proceed finalizing Minutes without participants
+   *        processFinalize is true, when you want to proceed finalizing Minutes
+   * without participants
    */
   static finalizeCurrentMinutesWithoutParticipants(
     confirmDialog,
@@ -115,7 +116,7 @@ export class E2EMinutes {
     for (const i in elements.value) {
       const elemId = elements.value[i].ELEMENT;
       const visibleText = browser.elementIdText(elemId).value;
-      if (visibleText == aDate) {
+      if (visibleText === aDate) {
         const linkTarget = browser.elementIdAttribute(elemId, "href").value;
         return linkTarget.slice(linkTarget.lastIndexOf("/") + 1);
       }
