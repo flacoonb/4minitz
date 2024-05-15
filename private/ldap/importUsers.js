@@ -1,5 +1,6 @@
-const loadLDAPSettings = require("../../imports/ldap/loadLDAPSettings");
-const importUsers = require("../../imports/ldap/import");
+import importUsers from "../../imports/ldap/import";
+import loadLDAPSettings from "../../imports/ldap/loadLDAPSettings";
+
 const optionParser = require("node-getopt").create([
   ["s", "settings=[ARG]", "4minitz Meteor settings file"],
   ["m", "mongourl=[ARG]", "Mongo DB url"],
@@ -18,9 +19,7 @@ const arg = optionParser.bindHelp().parseSystem();
 
 if (!arg.options.settings) {
   optionParser.showHelp();
-  console.error("No 4minitz settings file given.");
-
-  process.exit(1);
+  throw new Error("No 4minitz settings file given.");
 }
 
 const meteorSettingsFile = arg.options.settings;
@@ -28,9 +27,7 @@ const mongoUrl = arg.options.mongourl || process.env.MONGO_URL;
 
 if (!mongoUrl) {
   optionParser.showHelp();
-  console.error("No mongo url found in env or given as parameter.");
-
-  process.exit(1);
+  throw new Error("No mongo url found in env or given as parameter.");
 }
 
 loadLDAPSettings(meteorSettingsFile)

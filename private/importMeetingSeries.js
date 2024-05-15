@@ -4,14 +4,15 @@
    mongodb://localhost:3101/meteor --id icwrCdJjqWpoH9ugQ
  */
 
-const mongo = require("mongodb").MongoClient;
-const ExpImpSchema = require("../imports/server/exportimport/expImpSchema");
-const ExpImpMeetingSeries = require("../imports/server/exportimport/expImpMeetingseries");
-const ExpImpMinutes = require("../imports/server/exportimport/expImpMinutes");
-const ExpImpTopics = require("../imports/server/exportimport/expImpTopics");
-const ExpImpFileAttachments = require("../imports/server/exportimport/expImpFilesAttachments");
-const ExpImpFileDocuments = require("../imports/server/exportimport/expImpFilesDocuments");
-const ExpImpUsers = require("../imports/server/exportimport/expImpUsers");
+import { MongoClient as mongo } from "mongodb";
+
+import ExpImpFileAttachments from "../imports/server/exportimport/expImpFilesAttachments";
+import ExpImpFileDocuments from "../imports/server/exportimport/expImpFilesDocuments";
+import ExpImpMeetingSeries from "../imports/server/exportimport/expImpMeetingseries";
+import ExpImpMinutes from "../imports/server/exportimport/expImpMinutes";
+import ExpImpSchema from "../imports/server/exportimport/expImpSchema";
+import ExpImpTopics from "../imports/server/exportimport/expImpTopics";
+import ExpImpUsers from "../imports/server/exportimport/expImpUsers";
 
 const optionParser = require("node-getopt").create([
   ["i", "id=[ARG]", "ID of meeting series, e.g. icwrCdJjqWpoH9ugQ"],
@@ -24,16 +25,14 @@ const mongoUrl = arg.options.mongourl || process.env.MONGO_URL;
 const meetingseriesID = arg.options.id;
 if (!meetingseriesID) {
   optionParser.showHelp();
-  console.error("No --id set for meeting series");
-  process.exit(1);
+  throw new Error("No --id set for meeting series");
 }
 if (!mongoUrl) {
   optionParser.showHelp();
-  console.error("No --mongourl parameter or MONGO_URL in env");
-  process.exit(1);
+  throw new Error("No --mongourl parameter or MONGO_URL in env");
 }
-const _connectMongo = function (mongoUrl) {
-  return new Promise((resolve, reject) => {
+const _connectMongo = (mongoUrl) =>
+  new Promise((resolve, reject) => {
     mongo.connect(mongoUrl, (error, db) => {
       if (error) {
         reject(error);
@@ -42,7 +41,6 @@ const _connectMongo = function (mongoUrl) {
       resolve(db);
     });
   });
-};
 
 console.log("");
 console.log(
