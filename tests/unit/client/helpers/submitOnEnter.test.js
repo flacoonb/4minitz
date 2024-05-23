@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
-import _ from "underscore";
 
 const jQueryOnStub = sinon.stub();
 const $ = sinon.stub().returns({
@@ -10,7 +9,6 @@ const $ = sinon.stub().returns({
 
 const submitOnEnter = proxyquire("../../../../client/helpers/submitOnEnter", {
   "meteor/jquery": { $, "@noCallThru": true },
-  "meteor/underscore": { _, "@noCallThru": true },
 }).default;
 
 describe("submitOnEnter", function () {

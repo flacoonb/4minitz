@@ -1,9 +1,10 @@
 import { expect } from "chai";
-import * as DateHelpers from "../../../imports/helpers/date";
-import * as SubElements from "../../../imports/helpers/subElements";
+import _ from "lodash";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
-import _ from "underscore";
+
+import * as DateHelpers from "../../../imports/helpers/date";
+import * as SubElements from "../../../imports/helpers/subElements";
 
 const MeetingSeriesSchema = {};
 const Meteor = {
@@ -23,7 +24,9 @@ const MinutesFinder = {
 DateHelpers["@noCallThru"] = true;
 SubElements["@noCallThru"] = true;
 
-const Random = { id: () => {} };
+const Random = {
+  id: () => {},
+};
 const jQuery = {};
 const TopicsFinder = {};
 
@@ -45,7 +48,7 @@ const { MeetingSeries } = proxyquire("../../../imports/meetingseries", {
   "./userroles": { UserRoles, "@noCallThru": true },
   "/imports/helpers/date": DateHelpers,
   "/imports/helpers/subElements": SubElements,
-  "meteor/underscore": { _, "@noCallThru": true },
+  lodash: { _, "@noCallThru": true },
   "./services/topicsFinder": { TopicsFinder, "@noCallThru": true },
   "/imports/services/minutesFinder": { MinutesFinder, "@noCallThru": true },
 });
@@ -62,13 +65,13 @@ describe("MeetingSeries", () => {
     });
 
     it("sets the project correctly", () => {
-      var ms = new MeetingSeries(meetingSeries);
+      const ms = new MeetingSeries(meetingSeries);
 
       expect(ms.project).to.equal(meetingSeries.project);
     });
 
     it("sets the name correctly", () => {
-      var ms = new MeetingSeries(meetingSeries);
+      const ms = new MeetingSeries(meetingSeries);
 
       expect(ms.name).to.equal(meetingSeries.name);
     });
@@ -104,7 +107,7 @@ describe("MeetingSeries", () => {
 
       MinutesFinder.result = { date: expectedDate };
 
-      var actualDate = series.getMinimumAllowedDateForMinutes();
+      const actualDate = series.getMinimumAllowedDateForMinutes();
 
       compareDates(actualDate, expectedDate);
     });
@@ -124,7 +127,7 @@ describe("MeetingSeries", () => {
         },
       ]);
 
-      var actualDate = series.getMinimumAllowedDateForMinutes(lastMinuteId);
+      const actualDate = series.getMinimumAllowedDateForMinutes(lastMinuteId);
 
       compareDates(actualDate, expectedDate);
     });
@@ -144,7 +147,7 @@ describe("MeetingSeries", () => {
         },
       ]);
 
-      var actualDate =
+      const actualDate =
         series.getMinimumAllowedDateForMinutes(secondToLastMinuteId);
 
       compareDates(actualDate, expectedDate);
