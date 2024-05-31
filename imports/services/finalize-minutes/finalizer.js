@@ -1,5 +1,3 @@
-import "/imports/helpers/promisedMethods";
-
 import { MeetingSeriesSchema } from "/imports/collections/meetingseries.schema";
 import { MinutesSchema } from "/imports/collections/minutes.schema";
 import { GlobalSettings } from "/imports/config/GlobalSettings";
@@ -15,7 +13,15 @@ import { i18n } from "meteor/universe:i18n";
 
 import { TopicsFinalizer } from "./topicsFinalizer";
 
-// todo merge with finalizer copy
+/**
+ * Checks if the user is available and is a moderator of the specified meeting
+ * series.
+ * @todo merge with finalizer copy
+ *
+ * @param {string} meetingSeriesId - The ID of the meeting series.
+ * @throws {Meteor.Error} Throws an error if the user is not authorized or not a
+ *     moderator.
+ */
 function checkUserAvailableAndIsModeratorOf(meetingSeriesId) {
   // Make sure the user is logged in before changing collections
   if (!Meteor.userId()) {
@@ -35,6 +41,15 @@ function checkUserAvailableAndIsModeratorOf(meetingSeriesId) {
   }
 }
 
+/**
+ * Sends finalization mail for the given minutes.
+ *
+ * @param {Object} minutes - The minutes object to be finalized.
+ * @param {boolean} sendActionItems - Indicates whether to send action items in
+ *     the mail.
+ * @param {boolean} sendInfoItems - Indicates whether to send info items in the
+ *     mail.
+ */
 function sendFinalizationMail(minutes, sendActionItems, sendInfoItems) {
   if (!GlobalSettings.isEMailDeliveryEnabled()) {
     console.log(
@@ -59,6 +74,12 @@ function sendFinalizationMail(minutes, sendActionItems, sendInfoItems) {
   });
 }
 
+/**
+ * Removes the "isEditedBy" and "isEditedDate" properties from the given minutes
+ * object and its nested properties.
+ * @param {Object} aMin - The minutes object to remove the "isEditedBy" and
+ *     "isEditedDate" properties from.
+ */
 function removeIsEdited(aMin) {
   for (const topic of aMin.topics) {
     topic.isEditedBy = null;
@@ -74,6 +95,19 @@ function removeIsEdited(aMin) {
   }
 }
 
+/**
+ * Compiles the finalized information of the minutes.
+ *
+ * @param {Object} minutes - The minutes object.
+ * @param {string} minutes.finalizedAt - The timestamp when the minutes were
+ *     finalized.
+ * @param {boolean} minutes.isFinalized - Indicates whether the minutes are
+ *     finalized or not.
+ * @param {string} minutes.finalizedVersion - The version of the finalized
+ *     minutes.
+ * @param {string} minutes.finalizedBy - The person who finalized the minutes.
+ * @returns {string} - The compiled finalized information.
+ */
 function compileFinalizedInfo(minutes) {
   if (!minutes.finalizedAt) {
     return "Never finalized";
@@ -193,7 +227,19 @@ Meteor.methods({
   },
 });
 
+/**
+ * Represents a Finalizer, responsible for finalizing and unfinalizing minutes.
+ * @class
+ */
 export class Finalizer {
+  /**
+   * Finalizes the minutes with the given ID.
+   *
+   * @param {string} minutesId - The ID of the minutes to finalize.
+   * @param {boolean} sendActionItems - Indicates whether to send action items.
+   * @param {boolean} sendInfoItems - Indicates whether to send info items.
+   * @param {function} onErrorCallback - The callback function to handle errors.
+   */
   static finalize(minutesId, sendActionItems, sendInfoItems, onErrorCallback) {
     Meteor.call(
       "workflow.finalizeMinute",
@@ -216,6 +262,11 @@ export class Finalizer {
     }
   }
 
+  /**
+   * Unfinalizes the minutes with the given ID.
+   *
+   * @param {string} minutesId - The ID of the minutes to unfinalize.
+   */
   static unfinalize(minutesId) {
     Meteor.call("workflow.unfinalizeMinute", minutesId);
     // remove protocol if enabled
@@ -224,11 +275,24 @@ export class Finalizer {
     }
   }
 
+  /**
+   * Retrieves the finalized information for a given minutes ID.
+   *
+   * @param {string} minutesId - The ID of the minutes.
+   * @returns {object} - The finalized information for the minutes.
+   */
   static finalizedInfo(minutesId) {
     const minutes = MinutesSchema.findOne(minutesId);
     return compileFinalizedInfo(minutes);
   }
 
+  /**
+   * Checks if unfinalizing minutes is allowed for the given minutes ID.
+   *
+   * @param {string} minutesId - The ID of the minutes to check.
+   * @returns {boolean} - True if unfinalizing minutes is allowed, false
+   *     otherwise.
+   */
   static isUnfinalizeMinutesAllowed(minutesId) {
     const minutes = MinutesSchema.findOne(minutesId);
     const meetingSeries = MeetingSeriesSchema.findOne(minutes.meetingSeries_id);

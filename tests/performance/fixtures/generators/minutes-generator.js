@@ -1,17 +1,26 @@
-import { Random } from "../lib/random";
 import moment from "moment/moment";
-import { DateHelper } from "../lib/date-helper";
 
+import { DateHelper } from "../lib/date-helper";
+import { Random } from "../lib/random";
+
+/**
+ * Represents a MinutesGenerator object.
+ * @constructor
+ * @param {Object} config - The configuration object.
+ * @param {string} parentSeriesId - The ID of the parent series.
+ * @param {string} user - The user associated with the generator.
+ * @param {Date} [nextMinutesDate=null] - The next minutes date. Defaults to the
+ *     current date if not provided.
+ */
 export class MinutesGenerator {
   /**
-   *
-   * @param config                        - Configuration
-   * @param config.minutesCount {number}  - amount of minutes which should be generated
-   * @param parentSeriesId
-   * @param user                          - owner of the minutes
-   * @param user._id
-   * @param user.username
-   * @param nextMinutesDate
+   * Represents a MinutesGenerator object.
+   * @constructor
+   * @param {Object} config - The configuration object.
+   * @param {string} parentSeriesId - The ID of the parent series.
+   * @param {string} user - The user associated with the generator.
+   * @param {Date} [nextMinutesDate=null] - The next minutes date. Defaults to
+   *     the current date if not provided.
    */
   constructor(config, parentSeriesId, user, nextMinutesDate = null) {
     if (nextMinutesDate === null) {
@@ -24,9 +33,9 @@ export class MinutesGenerator {
   }
 
   /**
-   *
-   * @param topicsGenerator {TopicsGenerator}
-   * @returns {Array}
+   * Generates an array of minutes using the provided topics generator.
+   * @param {TopicsGenerator} topicsGenerator - The topics generator to use.
+   * @returns {Array} - An array of generated minutes.
    */
   generate(topicsGenerator) {
     const result = [];
@@ -41,6 +50,14 @@ export class MinutesGenerator {
     return result;
   }
 
+  /**
+   * Generates a new minute object.
+   *
+   * @param {Object} topicsGenerator - The topics generator object.
+   * @param {boolean} [isLastOne=false] - Indicates if this is the last minute
+   *     object.
+   * @returns {Object} - The generated minute object.
+   */
   generateOne(topicsGenerator, isLastOne = false) {
     const id = Random.generateId();
     const min = {
@@ -71,7 +88,8 @@ export class MinutesGenerator {
       min.finalizedBy = this.user.username;
       const dateTime = this.constructor._formatDateTime(this.nextMinutesDate);
 
-      // #I18N: We will leave this is English, as it is published to the database!
+      // #I18N: We will leave this is English, as it is published to the
+      // database!
       min.finalizedHistory.push(
         `Version 1. Finalized on ${dateTime} by ${this.user.username}`,
       );
@@ -79,14 +97,24 @@ export class MinutesGenerator {
     return min;
   }
 
+  /**
+   * Increments the `nextMinutesDate` property by one day.
+   */
   _tickOneDay() {
     this.nextMinutesDate = moment(this.nextMinutesDate).add(1, "days").toDate();
   }
 
+  /**
+   * @borrows DateHelper.formatDateISO8601 as _formatDate
+   */
   static _formatDate(date) {
     return DateHelper.formatDateISO8601(date);
   }
 
+  /**
+   * @borrows DateHelper.formatDateISO8601Time as _formatDateTime
+   * @param {Date} date
+   */
   static _formatDateTime(date) {
     return DateHelper.formatDateISO8601Time(date);
   }
