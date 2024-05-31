@@ -14,5 +14,5 @@ jobs:
           column: 'Todo'
           owner: 'bubonicfred'
           type: 'user'
-          github_token: ${{ secrets.GA_ACCESS_TOKEN}}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           marker: 'issue:todo'
