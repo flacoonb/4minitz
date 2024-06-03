@@ -13,6 +13,6 @@ jobs:
           project: '4minitz'
           column: 'Done'
           owner: 'bubonicfred'
-          repo: 'action-move-issues-to-column'
+          repo: ${{ github.repository }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: main
