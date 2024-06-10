@@ -1,15 +1,21 @@
 import { expect } from "chai";
+import _ from "lodash";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
-import _ from "underscore";
 
 import * as DateHelpers from "../../../../../imports/helpers/date";
 
-let MinutesSchema = { update: sinon.stub(), findOne: sinon.stub() };
+const MinutesSchema = {
+  update: sinon.stub(),
+  findOne: sinon.stub(),
+};
 
-let MeetingSeriesSchema = { update: sinon.stub(), findOne: sinon.stub() };
+const MeetingSeriesSchema = {
+  update: sinon.stub(),
+  findOne: sinon.stub(),
+};
 
-let Minutes = sinon.stub();
+const Minutes = sinon.stub();
 // let Minutes = {
 //     save: sinon.stub(),
 // };
@@ -25,7 +31,7 @@ const MeteorError = (err, details) => {
 };
 const MeteorMethods = {};
 
-let Meteor = {
+const Meteor = {
   userId: sinon.stub(),
   user: sinon.stub(),
   defer: sinon.stub().callsArg(0),
@@ -36,7 +42,6 @@ let Meteor = {
   settings: { public: { docGeneration: { enabled: true } } },
 };
 
-let PromisedMethods = {};
 DateHelpers["@noCallThru"] = true;
 
 const GlobalSettings = {
@@ -60,17 +65,20 @@ const DocumentGeneration = {
 };
 
 const User = {
-  PROFILENAMEWITHFALLBACK: sinon.stub(),
+  profileNameWithFallback: sinon.stub(),
 };
 
-let i18n = { setLocale: sinon.stub(), getLocale: sinon.stub() };
+const i18n = {
+  setLocale: sinon.stub(),
+  getLocale: sinon.stub(),
+};
 
 const { Finalizer } = proxyquire(
   "../../../../../imports/services/finalize-minutes/finalizer",
   {
     "meteor/meteor": { Meteor, "@noCallThru": true },
     "meteor/universe:i18n": { i18n, "@noCallThru": true },
-    "meteor/underscore": { _, "@noCallThru": true },
+    lodash: { _, "@noCallThru": true },
     "meteor/check": { check, "@noCallThru": true },
     "/imports/collections/minutes.schema": {
       MinutesSchema,
@@ -84,10 +92,6 @@ const { Finalizer } = proxyquire(
     "/imports/topic": { Topics, "@noCallThru": true },
     "/imports/userroles": { UserRoles, "@noCallThru": true },
     "/imports/user": { User, "@noCallThru": true },
-    "/imports/helpers/promisedMethods": {
-      PromisedMethods,
-      "@noCallThru": true,
-    },
     "/imports/mail/FinalizeMailHandler": {
       FinalizeMailHandler,
       "@noCallThru": true,
@@ -116,16 +120,18 @@ function verifyPropertyOfMinutesUpdate(minutes, property, value) {
   );
 }
 
+// skipcq: JS-0241
 describe("workflow.finalizeMinute", function () {
-  const finalizeMeteorMethod = MeteorMethods["workflow.finalizeMinute"],
-    fakeMeetingSeries = {
-      openTopics: [],
-      topics: [],
-      updateLastMinutesFieldsAsync: sinon.stub(),
-    },
-    user = { username: "me" };
-  let minutes, secondToLastMinutes;
-
+  const finalizeMeteorMethod = MeteorMethods["workflow.finalizeMinute"];
+  const fakeMeetingSeries = {
+    openTopics: [],
+    topics: [],
+    updateLastMinutesFieldsAsync: sinon.stub(),
+  };
+  const user = { username: "me" };
+  let minutes;
+  let secondToLastMinutes;
+  // skipcq: JS-0241
   beforeEach(function () {
     minutes = {
       meetingSeries_id: "AaBbCc01",
@@ -155,7 +161,7 @@ describe("workflow.finalizeMinute", function () {
 
     Meteor.user.returns(user);
   });
-
+  // skipcq: JS-0241
   afterEach(function () {
     Meteor.isClient = true;
 
@@ -166,7 +172,7 @@ describe("workflow.finalizeMinute", function () {
     Meteor.userId.resetHistory();
     Meteor.user.resetHistory();
   });
-
+  // skipcq: JS-0241
   it("throws an exception if the user is not logged in", function () {
     Meteor.userId.resetHistory();
     Meteor.userId.returns();
@@ -181,6 +187,7 @@ describe("workflow.finalizeMinute", function () {
     }
   });
 
+  // skipcq: JS-0241
   it("throws an exception if the user is not authorized", function () {
     UserRoles.resetHistory();
     UserRoles.returns({ isModeratorOf: sinon.stub().returns(false) });
@@ -194,7 +201,7 @@ describe("workflow.finalizeMinute", function () {
       expect(e.details).to.deep.equal(expectedDetails);
     }
   });
-
+  // skipcq: JS-0241
   it("throws an exception if the minute is already finalized", function () {
     minutes.isFinalized = true;
 
@@ -207,25 +214,25 @@ describe("workflow.finalizeMinute", function () {
       expect(e.details).to.deep.equal(expectedDetails);
     }
   });
-
+  // skipcq: JS-0241
   it("sets the isFinalized property of the minutes to true", function () {
     finalizeMeteorMethod(minutes._id);
     verifyPropertyOfMinutesUpdate(minutes, "isFinalized", true);
   });
-
+  // skipcq: JS-0241
   it("sets the finalizedBy property to the user that is currently logged in", function () {
-    User.PROFILENAMEWITHFALLBACK.returns(user.username);
+    User.profileNameWithFallback.returns(user.username);
     finalizeMeteorMethod(minutes._id);
     verifyPropertyOfMinutesUpdate(minutes, "finalizedBy", user.username);
   });
-
+  // skipcq: JS-0241
   it("sets the finalizedVersion to 1 if it did not exist before", function () {
     finalizeMeteorMethod(minutes._id);
 
     const expectedVersion = 1;
     verifyPropertyOfMinutesUpdate(minutes, "finalizedVersion", expectedVersion);
   });
-
+  // skipcq: JS-0241
   it("increments the finalizedVersion if it did exist before", function () {
     minutes.finalizedVersion = 21;
     finalizeMeteorMethod(minutes._id);
@@ -233,7 +240,7 @@ describe("workflow.finalizeMinute", function () {
     const expectedVersion = 22;
     verifyPropertyOfMinutesUpdate(minutes, "finalizedVersion", expectedVersion);
   });
-
+  // skipcq: JS-0241
   it("sends mails if minute update was successfull and method is called on server", function () {
     Meteor.isClient = false;
     MinutesSchema.update.returns(1);
@@ -249,12 +256,14 @@ describe("workflow.finalizeMinute", function () {
     sinon.assert.calledWith(mailHandlerInstance.sendMails, false, true);
   });
 });
-
+// skipcq: JS-0241
 describe("workflow.unfinalizeMinute", function () {
-  const unfinalizeMeteorMethod = MeteorMethods["workflow.unfinalizeMinute"],
-    user = { username: "me" };
-  let minutes, secondToLastMinutes, meetingSeries;
-
+  const unfinalizeMeteorMethod = MeteorMethods["workflow.unfinalizeMinute"];
+  const user = { username: "me" };
+  let minutes;
+  let secondToLastMinutes;
+  let meetingSeries;
+  // skipcq: JS-0241
   beforeEach(function () {
     const minutesId = "AaBbCc02";
 
@@ -298,7 +307,7 @@ describe("workflow.unfinalizeMinute", function () {
     Meteor.userId.returns("12");
     Meteor.user.returns(user);
   });
-
+  // skipcq: JS-0241
   afterEach(function () {
     Meteor.isClient = true;
 
@@ -312,12 +321,12 @@ describe("workflow.unfinalizeMinute", function () {
     Meteor.userId.resetHistory();
     Meteor.user.resetHistory();
   });
-
+  // skipcq: JS-0241
   it("sets isFinalized to false", function () {
     unfinalizeMeteorMethod(minutes._id);
     verifyPropertyOfMinutesUpdate(minutes, "isFinalized", false);
   });
-
+  // skipcq: JS-0241
   it("throws an exception if the minutes is not the last one of the series", function () {
     MinutesFinder.lastMinutesOfMeetingSeries.returns({
       _id: "some-other-minutes",
@@ -332,7 +341,7 @@ describe("workflow.unfinalizeMinute", function () {
       expect(e.details).to.deep.equal(expectedDetails);
     }
   });
-
+  // skipcq: JS-0241
   it("throws an exception if the user is not logged in", function () {
     Meteor.userId.resetHistory();
     Meteor.userId.returns();
@@ -346,7 +355,7 @@ describe("workflow.unfinalizeMinute", function () {
       expect(e.details).to.deep.equal(expectedDetails);
     }
   });
-
+  // skipcq: JS-0241
   it("throws an exception if the user is not authorized", function () {
     UserRoles.resetHistory();
     UserRoles.returns({ isModeratorOf: sinon.stub().returns(false) });
@@ -360,42 +369,44 @@ describe("workflow.unfinalizeMinute", function () {
       expect(e.details).to.deep.equal(expectedDetails);
     }
   });
-
+  // skipcq: JS-0241
   it("sets the finalizedBy property to the user that is currently logged in", function () {
     unfinalizeMeteorMethod(minutes._id);
     verifyPropertyOfMinutesUpdate(minutes, "finalizedBy", user.username);
   });
 });
-
+// skipcq: JS-0241
 describe("Finalizer", function () {
-  let minutesId, minutes;
-
+  let minutesId = ""; // Initialized with an empty string as a default value
+  let minutes;
+  // skipcq: JS-0241
   beforeEach(function () {
     minutesId = "AaBbCc02";
 
     minutes = {};
     Minutes.returns(minutes);
   });
-
+  // skipcq: JS-0241
   afterEach(function () {
     Meteor.call.resetHistory();
     Minutes.resetHistory();
   });
-
+  // skipcq: JS-0241
   describe("#finalize", function () {
+    // skipcq: JS-0241
     it("calls the meteor methods workflow.finalizeMinute and documentgeneration.createAndStoreFile", function () {
       Finalizer.finalize();
 
       expect(Meteor.call.calledTwice).to.be.true;
     });
-
+    // skipcq: JS-0241
     it("sends the id to the meteor method workflow.finalizeMinute", function () {
       Finalizer.finalize(minutesId);
 
       expect(Meteor.call.calledWith("workflow.finalizeMinute", minutesId)).to.be
         .true;
     });
-
+    // skipcq: JS-0241
     it("sends the id to the meteor method documentgeneration.createAndStoreFile", function () {
       Finalizer.finalize(minutesId);
 
@@ -407,14 +418,15 @@ describe("Finalizer", function () {
       ).to.be.true;
     });
   });
-
+  // skipcq: JS-0241
   describe("#unfinalize", function () {
+    // skipcq: JS-0241
     it("calls the meteor methods workflow.unfinalizeMinute and documentgeneration.removeFile", function () {
       Finalizer.unfinalize();
 
       expect(Meteor.call.calledTwice).to.be.true;
     });
-
+    // skipcq: JS-0241
     it("sends the id to the meteor method workflow.unfinalizeMinute", function () {
       Finalizer.unfinalize(minutesId);
 
@@ -422,7 +434,7 @@ describe("Finalizer", function () {
         Meteor.call.calledWithExactly("workflow.unfinalizeMinute", minutesId),
       ).to.be.true;
     });
-
+    // skipcq: JS-0241
     it("sends the id to the meteor method documentgeneration.removeFile", function () {
       Finalizer.unfinalize(minutesId);
 
@@ -434,20 +446,21 @@ describe("Finalizer", function () {
       ).to.be.true;
     });
   });
-
+  // skipcq: JS-0241
   describe("#finalizedInfo", function () {
-    let minutes;
-
+    let minutes = {}; // Initialized directly
+    // skipcq: JS-0241
     beforeEach(function () {
       minutes = {};
       MinutesSchema.findOne.returns(minutes);
     });
-
+    // skipcq: JS-0241
     afterEach(function () {
       MinutesSchema.findOne.resetHistory();
     });
-
+    // skipcq: JS-0241
     it("returns that the minutes was never finalized if it was never finalized", function () {
+      // skipcq: JS-0241
       Object.assign(minutes, { finalizedAt: null });
 
       const someId = "";
@@ -456,8 +469,9 @@ describe("Finalizer", function () {
       const expectedResult = "Never finalized";
       expect(result).to.deep.equal(expectedResult);
     });
-
+    // skipcq: JS-0241
     it("returns that the minutes was unfinalized if it was", function () {
+      // skipcq: JS-0241
       Object.assign(minutes, {
         finalizedAt: new Date(2017, 6, 1, 14, 4, 0),
         isFinalized: false,
@@ -470,8 +484,9 @@ describe("Finalizer", function () {
       const expectedResult = "Unfinalized on 2017-07-01 14:04:00 by me";
       expect(result).to.deep.equal(expectedResult);
     });
-
+    // skipcq: JS-0241
     it("returns that the minutes was finalized if it was", function () {
+      // skipcq: JS-0241
       Object.assign(minutes, {
         finalizedAt: new Date(2017, 6, 1, 14, 4, 0),
         isFinalized: true,
@@ -484,7 +499,7 @@ describe("Finalizer", function () {
       const expectedResult = "Finalized on 2017-07-01 14:04:00 by me";
       expect(result).to.deep.equal(expectedResult);
     });
-
+    // skipcq: JS-0241
     it("states the version if it is available", function () {
       Object.assign(minutes, {
         finalizedAt: new Date(2017, 6, 1, 14, 4, 0),
@@ -501,10 +516,11 @@ describe("Finalizer", function () {
       expect(result).to.deep.equal(expectedResult);
     });
   });
-
+  // skipcq: JS-0241
   describe("#isUnfinalizeMinutesAllowed", function () {
-    let meetingSeries, minutes;
-
+    let meetingSeries = {}; // Initialized directly
+    let minutes = {}; // Adjusted initialization
+    // skipcq: JS-0241
     beforeEach(function () {
       const minutesId = "some-fance-minutes-id";
       minutes = { _id: minutesId };
@@ -515,19 +531,19 @@ describe("Finalizer", function () {
 
       MinutesFinder.lastMinutesOfMeetingSeries.returns({});
     });
-
+    // skipcq: JS-0241
     afterEach(function () {
       MinutesSchema.findOne.resetHistory();
       MeetingSeriesSchema.findOne.resetHistory();
       MinutesFinder.lastMinutesOfMeetingSeries.resetHistory();
     });
-
+    // skipcq: JS-0241
     it("returns true if the given minutes id belongs to the last minutes in the series", function () {
       MinutesFinder.lastMinutesOfMeetingSeries.returns(minutes);
       const result = Finalizer.isUnfinalizeMinutesAllowed(minutes._id);
       expect(result).to.be.true;
     });
-
+    // skipcq: JS-0241
     it("returns false if there is some other minutes that is the last minutes in the series", function () {
       const someOtherMinutes = { _id: "some-other-minutes" };
       MinutesFinder.lastMinutesOfMeetingSeries.returns(someOtherMinutes);

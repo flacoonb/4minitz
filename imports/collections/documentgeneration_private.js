@@ -1,25 +1,27 @@
 import { Meteor } from "meteor/meteor";
-
-import { Minutes } from "./../minutes";
-import { UserRoles } from "./../userroles";
-import { TemplateRenderer } from "./../server_side_templates/TemplateRenderer";
-import { DocumentGeneration } from "./../documentGeneration";
-
 import { FilesCollection } from "meteor/ostrio:files";
-import { extendedPublishSubscribeHandler } from "./../helpers/extendedPublishSubscribe";
+
 import { User } from "../user";
 
-export let DocumentsCollection = new FilesCollection({
+import { DocumentGeneration } from "./../documentGeneration";
+import { extendedPublishSubscribeHandler } from "./../helpers/extendedPublishSubscribe";
+import { Minutes } from "./../minutes";
+import { TemplateRenderer } from "./../server_side_templates/TemplateRenderer";
+import { UserRoles } from "./../userroles";
+
+export const DocumentsCollection = new FilesCollection({
   collectionName: "DocumentsCollection",
   allowClientCode: false,
-  permissions: 0o0600, // #Security: make uploaded files "chmod 600' only readable for server user
-  storagePath: Meteor.isServer ? createDocumentStoragePath : undefined, //eslint-disable-line
+  permissions: 0o0600, // #Security: make uploaded files "chmod 600' only
+  // readable for server user
+  storagePath: Meteor.isServer ? createDocumentStoragePath : undefined, // eslint-disable-line
 
   // #Security: onBeforeUpload
-  // Here we check for upload rights of user. User must be moderator for meeting series.
-  // This will be run in method context on client and(!) server by the Meteor-Files package
-  // So, server will always perform the last ultimate check!
-  onBeforeUpload: function (file) {
+  // Here we check for upload rights of user. User must be moderator for meeting
+  // series. This will be run in method context on client and(!) server by the
+  // Meteor-Files package So, server will always perform the last ultimate
+  // check!
+  onBeforeUpload(file) {
     if (!Meteor.settings.public.docGeneration.enabled) {
       return "Document Generation not enabled in settings.json";
     }
@@ -35,11 +37,11 @@ export let DocumentsCollection = new FilesCollection({
     if (file.meta.minuteDate === undefined) {
       return "Document Generation not possible. File has no minute date.";
     }
-    let ur = new UserRoles();
+    const ur = new UserRoles();
     if (!ur.isModeratorOf(file.meta.meetingSeriesID)) {
       return "Document Genration not possible. User is not Moderator of this meeting series.";
     }
-    let min = new Minutes(file.meta.minuteID);
+    const min = new Minutes(file.meta.minuteID);
     if (!min.isFinalized) {
       return "Document Generation not possible. Minutes are not finalized.";
     }
@@ -47,30 +49,29 @@ export let DocumentsCollection = new FilesCollection({
     return true;
   },
 
-  onAfterUpload: function (file) {
-    console.log(
-      "Successfully created protocol: " + file.name + " to " + file.path,
-    );
+  onAfterUpload(file) {
+    console.log(`Successfully created protocol: ${file.name} to ${file.path}`);
     DocumentsCollection.update(file._id, {
       $set: { "meta.timestamp": new Date() },
     });
   },
 
-  onBeforeRemove: function (file) {
+  onBeforeRemove(file) {
     if (!Meteor.userId()) {
       return "Document could not be removed. No user logged in.";
     }
-    let ur = new UserRoles();
+    const ur = new UserRoles();
     if (!ur.isModeratorOf(file.meta.meetingSeriesID)) {
       return "Document could not be removed. User is not Moderator of this meeting series.";
     }
   },
 
   // #Security: downloadCallback
-  // Here we check for download rights of user, which equals to the "invited" role - or better.
-  // This will be run in method context on client and(!) server by the Meteor-Files package
-  // So, server will always perform the last ultimate check!
-  downloadCallback: function (file) {
+  // Here we check for download rights of user, which equals to the "invited"
+  // role - or better. This will be run in method context on client and(!)
+  // server by the Meteor-Files package So, server will always perform the last
+  // ultimate check!
+  downloadCallback(file) {
     if (!this.userId) {
       console.log("Protocol download prohibited. User not logged in.");
       return false;
@@ -88,11 +89,10 @@ export let DocumentsCollection = new FilesCollection({
       return false;
     }
 
-    let ur = new UserRoles(this.userId);
+    const ur = new UserRoles(this.userId);
     if (!ur.hasViewRoleFor(file.meta.meetingSeriesId)) {
       console.log(
-        "Protocol download prohibited. User has no view role for meeting series: " +
-          file.meta.meetingSeriesId,
+        `Protocol download prohibited. User has no view role for meeting series: ${file.meta.meetingSeriesId}`,
       );
       return false;
     }
@@ -113,7 +113,7 @@ Meteor.methods({
       return;
     }
 
-    //Check DocumentGeneration is enabled and user has rights to continue
+    // Check DocumentGeneration is enabled and user has rights to continue
     if (Meteor.settings.public.docGeneration.enabled !== true) {
       return;
     }
@@ -125,8 +125,8 @@ Meteor.methods({
       );
     }
 
-    let minute = new Minutes(minuteID);
-    let userRoles = new UserRoles(Meteor.userId());
+    const minute = new Minutes(minuteID);
+    const userRoles = new UserRoles(Meteor.userId());
     if (!userRoles.isInvitedTo(minute.parentMeetingSeriesID())) {
       throw new Meteor.Error(
         "Cannot download this minute",
@@ -134,25 +134,23 @@ Meteor.methods({
       );
     }
 
-    let documentHandler = {
+    const documentHandler = {
       _topics: minute.topics,
       _minute: minute,
       _meetingSeries: minute.parentMeetingSeries(),
       _participants: minute.getParticipants(Meteor.users),
       _informed: minute.getInformed(Meteor.users),
-      _userArrayToString: function (users) {
+      _userArrayToString(users) {
         return users
-          .map(function (user) {
-            return User.PROFILENAMEWITHFALLBACK(user);
-          })
+          .map((user) => User.profileNameWithFallback(user))
           .join("; ");
       },
     };
 
     DocumentGeneration.generateResponsibleStringsForTopic(documentHandler);
-    let templateData = DocumentGeneration.getDocumentData(documentHandler);
+    const templateData = DocumentGeneration.getDocumentData(documentHandler);
 
-    let tmplRenderer = new TemplateRenderer(
+    const tmplRenderer = new TemplateRenderer(
       "publishInfoItems",
       "server_templates/email",
     ).addData("name", "");
@@ -169,14 +167,15 @@ Meteor.methods({
       return;
     }
 
-    let minutesObj = new Minutes(minutesId);
-    //Security checks will be done in the onBeforeUpload-Hook
+    const minutesObj = new Minutes(minutesId);
+    // Security checks will be done in the onBeforeUpload-Hook
 
-    //this variable should be overwritten by the specific implementation of storing files based on their format
-    //for this purpose they'll receive two parameters: the html-content as a string and the minute as a object
+    // this variable should be overwritten by the specific implementation of
+    // storing files based on their format for this purpose they'll receive two
+    // parameters: the html-content as a string and the minute as a object
     let storeFileFunction = undefined;
-    let fileName = DocumentGeneration.calcFileNameforMinute(minutesObj);
-    let metaData = {
+    const fileName = DocumentGeneration.calcFileNameforMinute(minutesObj);
+    const metaData = {
       minuteId: minutesObj._id,
       meetingSeriesId: minutesObj.parentMeetingSeriesID(),
       minuteDate: minutesObj.date,
@@ -187,9 +186,13 @@ Meteor.methods({
       storeFileFunction = (htmldata, fileName, metaData) => {
         console.log("Protocol generation to file: ", fileName);
         DocumentsCollection.write(
-          new Buffer(htmldata),
-          { fileName: fileName + ".html", type: "text/html", meta: metaData },
-          function (error) {
+          new Buffer.alloc(htmldata),
+          {
+            fileName: `${fileName}.html`,
+            type: "text/html",
+            meta: metaData,
+          },
+          (error) => {
             if (error) {
               throw new Meteor.Error(error);
             }
@@ -204,7 +207,11 @@ Meteor.methods({
       Meteor.settings.public.docGeneration.format === "pdfa"
     ) {
       storeFileFunction = (htmldata, fileName, metaData) => {
-        let finalPDFOutputPath = convertHTML2PDF(htmldata, fileName, metaData); //eslint-disable-line
+        const finalPDFOutputPath = convertHTML2PDF(
+          htmldata,
+          fileName,
+          metaData,
+        );
         console.log(
           "Protocol generation to file: ",
           finalPDFOutputPath,
@@ -213,11 +220,11 @@ Meteor.methods({
         DocumentsCollection.addFile(
           finalPDFOutputPath,
           {
-            fileName: fileName + ".pdf",
+            fileName: `${fileName}.pdf`,
             type: "application/pdf",
             meta: metaData,
           },
-          function (error) {
+          (error) => {
             if (error) {
               throw new Meteor.Error(error);
             }
@@ -229,21 +236,20 @@ Meteor.methods({
     if (!storeFileFunction) {
       throw new Meteor.Error(
         "Cannot create protocol",
-        "The protocol could not be created since the format assigned in the settings.json is not supported: " +
-          Meteor.settings.public.docGeneration.format,
+        `The protocol could not be created since the format assigned in the settings.json is not supported: ${Meteor.settings.public.docGeneration.format}`,
       );
     }
 
-    //generate and store protocol
+    // generate and store protocol
     try {
-      let htmldata = Meteor.call(
+      const htmldata = Meteor.call(
         "documentgeneration.createHTML",
         minutesObj._id,
       ); // this one will run synchronous
       storeFileFunction(htmldata, fileName, metaData);
     } catch (error) {
       console.error("Error at Protocol generation:");
-      let errormsg = error.reason ? error.reason : error;
+      const errormsg = error.reason ? error.reason : error;
       console.error(errormsg);
       throw new Meteor.Error("runtime-error", errormsg.message);
     }
@@ -251,17 +257,14 @@ Meteor.methods({
 
   "documentgeneration.removeFile"(minutesId) {
     if (Meteor.isServer) {
-      //Security checks will be done in the onBeforeRemove-Hook
-      DocumentsCollection.remove(
-        { "meta.minuteId": minutesId },
-        function (error) {
-          if (error) {
-            throw new Meteor.Error(
-              "Protocol could not be deleted, error: " + error.reason,
-            );
-          }
-        },
-      );
+      // Security checks will be done in the onBeforeRemove-Hook
+      DocumentsCollection.remove({ "meta.minuteId": minutesId }, (error) => {
+        if (error) {
+          throw new Meteor.Error(
+            `Protocol could not be deleted, error: ${error.reason}`,
+          );
+        }
+      });
     }
   },
 });

@@ -1,12 +1,31 @@
-import { Meteor } from "meteor/meteor";
+/**
+ * This file defines the server-side functionality for the "minutes" collection.
+ * It includes methods for publishing minutes, sending agenda, updating minutes
+ * and topics, adding and removing topics, and syncing visibility and
+ * participants.
+ *
+ * @module minutes_private
+ * @requires meteor/check
+ * @requires meteor/meteor
+ * @requires ../config/GlobalSettings
+ * @requires ../mail/SendAgendaMailHandler
+ * @requires ../minutes
+ * @requires ../user
+ * @requires ../userroles
+ * @requires ./minutes.schema
+ * @requires ./topic.schema
+ */
 import { check } from "meteor/check";
+import { Meteor } from "meteor/meteor";
+
+import { GlobalSettings } from "../config/GlobalSettings";
+import { SendAgendaMailHandler } from "../mail/SendAgendaMailHandler";
 import { Minutes } from "../minutes";
-import { UserRoles } from "./../userroles";
 import { User } from "../user";
+import { UserRoles } from "../userroles";
+
 import { MinutesSchema } from "./minutes.schema";
 import { TopicSchema } from "./topic.schema";
-import { SendAgendaMailHandler } from "../mail/SendAgendaMailHandler";
-import { GlobalSettings } from "../config/GlobalSettings";
 
 if (Meteor.isServer) {
   Meteor.publish(
@@ -39,8 +58,8 @@ Meteor.methods({
     }
 
     // Ensure user is moderator before sending the agenda
-    let userRoles = new UserRoles(Meteor.userId());
-    let aMin = new Minutes(id);
+    const userRoles = new UserRoles(Meteor.userId());
+    const aMin = new Minutes(id);
     if (userRoles.isModeratorOf(aMin.parentMeetingSeriesID())) {
       if (!GlobalSettings.isEMailDeliveryEnabled()) {
         console.log(
@@ -53,12 +72,12 @@ Meteor.methods({
       }
 
       if (!Meteor.isClient) {
-        let emails = Meteor.user().emails;
-        let senderEmail =
+        const emails = Meteor.user().emails;
+        const senderEmail =
           emails && emails.length > 0
             ? emails[0].address
             : GlobalSettings.getDefaultEmailSenderAddress();
-        let sendAgendaMailHandler = new SendAgendaMailHandler(
+        const sendAgendaMailHandler = new SendAgendaMailHandler(
           senderEmail,
           aMin,
         );
@@ -85,7 +104,7 @@ Meteor.methods({
       throw new Meteor.Error("not-authorized");
     }
 
-    let id = doc._id;
+    const id = doc._id;
     check(id, String);
     delete doc._id; // otherwise collection.update will fail
 
@@ -95,22 +114,24 @@ Meteor.methods({
 
     // #Security & Consistency:
     // delete properties which should not be modified by the client
-    // these properties are only allowed to be modified serverside by workflow_private methods
+    // these properties are only allowed to be modified serverside by
+    // workflow_private methods
     delete doc.finalizedAt;
     delete doc.createdAt;
     delete doc.isFinalized;
     delete doc.finalizedVersion;
     delete doc.finalizedHistory;
 
-    let aMin = new Minutes(id);
-    if (doc.date) {
-      if (!aMin.parentMeetingSeries().isMinutesDateAllowed(id, doc.date)) {
-        return;
-      }
+    const aMin = new Minutes(id);
+    if (
+      doc.date &&
+      !aMin.parentMeetingSeries().isMinutesDateAllowed(id, doc.date)
+    ) {
+      return;
     }
 
     // Ensure user can not update documents of other users
-    let userRoles = new UserRoles(Meteor.userId());
+    const userRoles = new UserRoles(Meteor.userId());
     if (userRoles.isModeratorOf(aMin.parentMeetingSeriesID())) {
       // Ensure user can not update finalized minutes
 
@@ -118,12 +139,11 @@ Meteor.methods({
         { _id: id, isFinalized: false },
         { $set: doc },
       );
-    } else {
-      throw new Meteor.Error(
-        "Cannot update minutes",
-        "You are not moderator of the parent meeting series.",
-      );
     }
+    throw new Meteor.Error(
+      "Cannot update minutes",
+      "You are not moderator of the parent meeting series.",
+    );
   },
 
   /**
@@ -149,23 +169,23 @@ Meteor.methods({
     }
 
     doc.updatedAt = new Date();
-    doc.updatedBy = User.PROFILENAMEWITHFALLBACK(Meteor.user());
+    doc.updatedBy = User.profileNameWithFallback(Meteor.user());
 
-    let modifierDoc = {};
-    for (let property in doc) {
+    const modifierDoc = {};
+    for (const property in doc) {
       if (Object.prototype.hasOwnProperty.call(doc, property)) {
-        modifierDoc["topics.$." + property] = doc[property];
+        modifierDoc[`topics.$.${property}`] = doc[property];
       }
     }
 
-    let minDoc = MinutesSchema.findOne({
+    const minDoc = MinutesSchema.findOne({
       isFinalized: false,
       "topics._id": topicId,
     });
-    let aMin = new Minutes(minDoc);
+    const aMin = new Minutes(minDoc);
 
     // Ensure user can not update documents of other users
-    let userRoles = new UserRoles(Meteor.userId());
+    const userRoles = new UserRoles(Meteor.userId());
     if (userRoles.isModeratorOf(aMin.parentMeetingSeriesID())) {
       // Ensure user can not update finalized minutes
 
@@ -173,12 +193,11 @@ Meteor.methods({
         { _id: aMin._id, isFinalized: false, "topics._id": topicId },
         { $set: modifierDoc },
       );
-    } else {
-      throw new Meteor.Error(
-        "Cannot update minutes",
-        "You are not moderator of the parent meeting series.",
-      );
     }
+    throw new Meteor.Error(
+      "Cannot update minutes",
+      "You are not moderator of the parent meeting series.",
+    );
   },
 
   "minutes.addTopic"(minutesId, doc, insertPlacementTop) {
@@ -193,25 +212,25 @@ Meteor.methods({
       );
     }
 
-    let aMin = new Minutes(minutesId);
+    const aMin = new Minutes(minutesId);
 
     // Ensure user can not update documents of other users
-    let userRoles = new UserRoles(Meteor.userId());
+    const userRoles = new UserRoles(Meteor.userId());
     if (userRoles.isModeratorOf(aMin.parentMeetingSeriesID())) {
       // Ensure user can not update finalized minutes
 
-      let topicAlreadyExists = Boolean(aMin.findTopic(doc._id));
+      const topicAlreadyExists = Boolean(aMin.findTopic(doc._id));
       if (topicAlreadyExists) {
         throw new Meteor.Error("invalid-argument", "Topic already exists");
       }
 
       doc.createdInMinute = minutesId;
       doc.createdAt = new Date();
-      doc.createdBy = User.PROFILENAMEWITHFALLBACK(Meteor.user());
+      doc.createdBy = User.profileNameWithFallback(Meteor.user());
       doc.updatedAt = new Date();
-      doc.updatedBy = User.PROFILENAMEWITHFALLBACK(Meteor.user());
+      doc.updatedBy = User.profileNameWithFallback(Meteor.user());
 
-      let topicModifier = {
+      const topicModifier = {
         topics: {
           $each: [doc],
         },
@@ -225,12 +244,11 @@ Meteor.methods({
         { _id: minutesId, isFinalized: false },
         { $push: topicModifier },
       );
-    } else {
-      throw new Meteor.Error(
-        "Cannot update minutes",
-        "You are not moderator of the parent meeting series.",
-      );
     }
+    throw new Meteor.Error(
+      "Cannot update minutes",
+      "You are not moderator of the parent meeting series.",
+    );
   },
 
   "minutes.removeTopic"(topicId) {
@@ -242,14 +260,14 @@ Meteor.methods({
       throw new Meteor.Error("not-authorized");
     }
 
-    let minDoc = MinutesSchema.findOne({
+    const minDoc = MinutesSchema.findOne({
       isFinalized: false,
       "topics._id": topicId,
     });
-    let aMin = new Minutes(minDoc);
+    const aMin = new Minutes(minDoc);
 
     // Ensure user can not update documents of other users
-    let userRoles = new UserRoles(Meteor.userId());
+    const userRoles = new UserRoles(Meteor.userId());
     if (!userRoles.isModeratorOf(aMin.parentMeetingSeriesID())) {
       throw new Meteor.Error(
         "Cannot delete topic",
@@ -257,8 +275,9 @@ Meteor.methods({
       );
     }
 
-    // Ensure only topics created within the current minutes (=the last not-finalized one) can be deleted
-    let topic = aMin.findTopic(topicId);
+    // Ensure only topics created within the current minutes (=the last
+    // not-finalized one) can be deleted
+    const topic = aMin.findTopic(topicId);
     if (topic.createdInMinute !== aMin._id) {
       throw new Meteor.Error(
         "Cannot delete topic",
@@ -279,7 +298,7 @@ Meteor.methods({
 
   "minutes.syncVisibilityAndParticipants"(parentSeriesID, visibleForArray) {
     check(parentSeriesID, String);
-    let userRoles = new UserRoles(Meteor.userId());
+    const userRoles = new UserRoles(Meteor.userId());
     if (userRoles.isModeratorOf(parentSeriesID)) {
       Minutes.updateVisibleForAndParticipantsForAllMinutesOfMeetingSeries(
         parentSeriesID,
@@ -300,16 +319,17 @@ Meteor.methods({
 
   responsiblesSearch(partialName, participants) {
     check(partialName, String);
-    let results_participants = []; // get all the participants for the minute
-    let foundPartipantsNames = [];
+    const results_participants = []; // get all the participants for the minute
+    const foundPartipantsNames = [];
 
     participants.forEach((participant) => {
-      if (participant.text.toLowerCase().includes(partialName.toLowerCase())) {
-        participant["isParticipant"] = true;
-        results_participants.push(participant);
-        let name = participant.text.split(" - ");
-        foundPartipantsNames.push(name[0]);
+      if (!participant.text.toLowerCase().includes(partialName.toLowerCase())) {
+        return;
       }
+      participant.isParticipant = true;
+      results_participants.push(participant);
+      const name = participant.text.split(" - ");
+      foundPartipantsNames.push(name[0]);
     });
 
     let searchSettings = { username: { $regex: partialName, $options: "i" } };
@@ -326,14 +346,15 @@ Meteor.methods({
 
     let results_otherUser = Meteor.users
       .find(searchSettings, {
-        limit: 10 + results_participants.length, //we want to show 10 "Other user"
-        // as it is not known, if a user a participant or not -> get 10+participants
+        limit: 10 + results_participants.length, // we want to show 10 "Other user"
+        // as it is not known, if a user a participant or not -> get
+        // 10+participants
         fields: searchFields,
       })
       .fetch();
 
     results_otherUser = results_otherUser.filter((user) => {
-      //remove duplicates
+      // remove duplicates
       return !foundPartipantsNames.includes(user.username);
     });
     results_otherUser = results_otherUser.slice(0, 10); // limit to 10 records

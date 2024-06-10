@@ -2,20 +2,19 @@ import { handleError } from "/client/helpers/handleError";
 import { ActionItem } from "/imports/actionitem";
 import { configureSelect2Responsibles } from "/imports/client/ResponsibleSearch";
 import { currentDatePlusDeltaDays } from "/imports/helpers/date";
-import { emailAddressRegExpTest } from "/imports/helpers/email";
 import { MeetingSeries } from "/imports/meetingseries";
 import { Minutes } from "/imports/minutes";
 import { Priority } from "/imports/priority";
 import { Topic } from "/imports/topic";
 import { User, userSettings } from "/imports/user";
 import { _ } from "lodash";
-import { $ } from "meteor/jquery";
 import { Meteor } from "meteor/meteor";
 import { ReactiveVar } from "meteor/reactive-var";
 import { Session } from "meteor/session";
 import { Template } from "meteor/templating";
 import { i18n } from "meteor/universe:i18n";
 import moment from "moment/moment";
+import isEmail from "validator/lib/isEmail";
 
 import { IsEditedService } from "../../../imports/services/isEditedService";
 import { ConfirmationDialogFactory } from "../../helpers/confirmationDialogFactory";
@@ -35,8 +34,8 @@ let _meetingSeries; // ATTENTION - this var. is not reactive! It is cached for
 
 Template.topicInfoItemEdit.onCreated(function () {
   _minutesID = this.data;
-  console.log("Template topicEdit created with minutesID " + _minutesID);
-  let aMin = new Minutes(_minutesID);
+  console.log(`Template topicEdit created with minutesID ${_minutesID}`);
+  const aMin = new Minutes(_minutesID);
   _meetingSeries = new MeetingSeries(aMin.parentMeetingSeriesID());
 
   const user = new User();
@@ -59,9 +58,9 @@ Template.topicInfoItemEdit.onRendered(function () {
   });
 });
 
-let getRelatedTopic = function () {
-  let minutesId = _minutesID;
-  let topicId = Session.get("topicInfoItemEditTopicId");
+const getRelatedTopic = () => {
+  const minutesId = _minutesID;
+  const topicId = Session.get("topicInfoItemEditTopicId");
 
   if (minutesId === null || topicId === null) {
     return false;
@@ -70,20 +69,20 @@ let getRelatedTopic = function () {
   return new Topic(minutesId, topicId);
 };
 
-let getEditInfoItem = function () {
-  let id = Session.get("topicInfoItemEditInfoItemId");
+const getEditInfoItem = () => {
+  const id = Session.get("topicInfoItemEditInfoItemId");
 
   if (!id) return false;
 
   return getRelatedTopic().findInfoItem(id);
 };
 
-let toggleItemMode = function (type, tmpl) {
-  let actionItemOnlyElements = tmpl.$(".actionItemOnly");
+const toggleItemMode = (type, tmpl) => {
+  const actionItemOnlyElements = tmpl.$(".actionItemOnly");
   Session.set("topicInfoItemType", type);
-  let editItem = getEditInfoItem();
-  let freeTextValidator = (text) => {
-    return emailAddressRegExpTest.test(text);
+  const editItem = getEditInfoItem();
+  const freeTextValidator = (text) => {
+    return isEmail(text);
   };
   switch (type) {
     case "actionItem":
@@ -105,12 +104,10 @@ let toggleItemMode = function (type, tmpl) {
   }
 };
 
-let resizeTextarea = (element) => {
-  let newLineRegEx = new RegExp(/\n/g);
-  let textAreaValue = element.val();
-  let occurrences;
-
-  occurrences = (textAreaValue.match(newLineRegEx) || []).length;
+const resizeTextarea = (element) => {
+  const newLineRegEx = new RegExp(/\n/g);
+  const textAreaValue = element.val();
+  const occurrences = (textAreaValue.match(newLineRegEx) || []).length;
 
   // limit of textarea size
   if (occurrences < 15) {
@@ -127,38 +124,38 @@ function closePopupAndUnsetIsEdited() {
     false,
   );
 
-  $("#dlgAddInfoItem").modal("hide");
+  document.querySelector("#dlgAddInfoItem").classList.remove("show");
 }
 
 Template.topicInfoItemEdit.helpers({
-  getPriorities: function () {
+  getPriorities() {
     return Priority.GET_PRIORITIES();
   },
-  isEditMode: function () {
+  isEditMode() {
     return getEditInfoItem() !== false;
   },
 
-  getTopicSubject: function () {
-    let topic = getRelatedTopic();
+  getTopicSubject() {
+    const topic = getRelatedTopic();
     return topic ? topic._topicDoc.subject : "";
   },
 
-  getTopicItemType: function () {
-    let type = Session.get("topicInfoItemType");
+  getTopicItemType() {
+    const type = Session.get("topicInfoItemType");
     return type === "infoItem"
       ? i18n.__("Item.editItemModelTypeInfoItem")
       : i18n.__("Item.editItemModelTypeActionItem");
   },
 
-  collapseState: function () {
+  collapseState() {
     const user = new User();
     return user.getSetting(userSettings.showAddDetail, true);
   },
 });
 
 Template.topicInfoItemEdit.events({
-  "submit #frmDlgAddInfoItem": async function (evt, tmpl) {
-    let saveButton = $("#btnInfoItemSave");
+  async "submit #frmDlgAddInfoItem"(evt, tmpl) {
+    const saveButton = document.querySelector("#btnInfoItemSave");
 
     try {
       saveButton.prop("disabled", true);
@@ -181,12 +178,12 @@ Template.topicInfoItemEdit.events({
 
       const type = Session.get("topicInfoItemType");
       const newSubject = tmpl.find("#id_item_subject").value;
-      const newDetail = !editItem
-        ? tmpl.find("#id_item_detailInput").value
-        : false;
+      const newDetail = editItem
+        ? false
+        : tmpl.find("#id_item_detailInput").value;
       const labels = tmpl.$("#id_item_selLabelsActionItem").val();
 
-      let doc = {};
+      const doc = {};
       if (editItem) {
         _.extend(doc, editItem._infoItemDoc);
       }
@@ -194,7 +191,7 @@ Template.topicInfoItemEdit.events({
       doc.subject = newSubject;
 
       if (type === "actionItem") {
-        doc.responsibles = $("#id_selResponsibleActionItem").val();
+        doc.responsibles = tmpl.find("#id_selResponsibleActionItem").value;
         doc.duedate = tmpl.find("#id_item_duedateInput").value;
         doc.priority = tmpl.find("#id_item_priority").value;
       }
@@ -214,23 +211,23 @@ Template.topicInfoItemEdit.events({
       }
 
       newItem.saveAsync().catch(handleError);
-      $("#dlgAddInfoItem").modal("hide");
+      document.querySelector("#dlgAddInfoItem").classList.remove("show");
     } finally {
       saveButton.prop("disabled", false);
     }
   },
 
   // will be called before the dialog is shown
-  "show.bs.modal #dlgAddInfoItem": function (evt, tmpl) {
+  "show.bs.modal #dlgAddInfoItem"(evt, tmpl) {
     // at this point we clear the view
-    let saveButton = $("#btnInfoItemSave");
-    let cancelButton = $("#btnInfoItemCancel");
-    saveButton.prop("disabled", false);
-    cancelButton.prop("disabled", false);
+    const saveButton = document.querySelector("#btnInfoItemSave");
+    const cancelButton = document.querySelector("#btnInfoItemCancel");
+    saveButton.disabled = false;
+    cancelButton.disabled = false;
 
-    let editItem = getEditInfoItem();
+    const editItem = getEditInfoItem();
 
-    let itemSubject = tmpl.find("#id_item_subject");
+    const itemSubject = tmpl.find("#id_item_subject");
     itemSubject.value = editItem ? editItem._infoItemDoc.subject : "";
 
     tmpl.find("#id_item_priority").value =
@@ -246,7 +243,7 @@ Template.topicInfoItemEdit.events({
     const user = new User();
     tmpl.collapseState.set(user.getSetting(userSettings.showAddDetail, true));
 
-    let detailsArea = tmpl.find("#id_item_detailInput");
+    const detailsArea = tmpl.find("#id_item_detailInput");
     if (detailsArea) {
       detailsArea.value = "";
       detailsArea.setAttribute("rows", 2);
@@ -262,18 +259,18 @@ Template.topicInfoItemEdit.events({
     );
     // set type: edit existing item
     if (editItem) {
-      let type = editItem instanceof ActionItem ? "actionItem" : "infoItem";
+      const type = editItem instanceof ActionItem ? "actionItem" : "infoItem";
       toggleItemMode(type, tmpl);
 
       const element = editItem._infoItemDoc;
-      const unset = function () {
+      const unset = () => {
         IsEditedService.removeIsEditedInfoItem(
           _minutesID,
           Session.get("topicInfoItemEditTopicId"),
           Session.get("topicInfoItemEditInfoItemId"),
           true,
         );
-        $("#dlgAddInfoItem").modal("show");
+        document.getElementById("dlgAddInfoItem").style.display = "block";
       };
       const setIsEdited = () => {
         IsEditedService.setIsEditedInfoItem(
@@ -292,10 +289,10 @@ Template.topicInfoItemEdit.events({
       );
     } else {
       // adding a new item
-      let freeTextValidator = (text) => {
-        return emailAddressRegExpTest.test(text);
+      const freeTextValidator = (text) => {
+        return isEmail(text);
       };
-      let editItem = getEditInfoItem();
+      const editItem = getEditInfoItem();
       configureSelect2Responsibles(
         "id_selResponsibleActionItem",
         editItem._infoItemDoc,
@@ -303,35 +300,31 @@ Template.topicInfoItemEdit.events({
         _minutesID,
         editItem,
       );
-      let selectResponsibles = $("#id_selResponsibleActionItem");
-      if (selectResponsibles) {
-        selectResponsibles.val([]).trigger("change");
-      }
-      let selectLabels = $("#id_item_selLabelsActionItem");
+      const selectLabels = document.querySelector(
+        "#id_item_selLabelsActionItem",
+      );
       if (selectLabels) {
-        selectLabels.val([]).trigger("change");
+        selectLabels.value = "";
       }
-      let infoItemType = Session.get("topicInfoItemType");
+      const infoItemType = Session.get("topicInfoItemType");
       toggleItemMode(infoItemType, tmpl);
 
-      if (infoItemType === "infoItem") {
-        itemSubject.value = "Info";
-      } else {
-        itemSubject.value = "";
-      }
+      const itemSubject = document.querySelector("#id_item_subject");
+      itemSubject.value = infoItemType === "infoItem" ? "Info" : "";
     }
   },
 
-  "shown.bs.modal #dlgAddInfoItem": function (evt, tmpl) {
+  "shown.bs.modal #dlgAddInfoItem"(evt, tmpl) {
     // ensure new values trigger placeholder animation
-    $("#id_item_subject").trigger("change");
-    $("#id_item_priority").trigger("change");
-    let itemSubject = tmpl.find("#id_item_subject");
+    const itemSubject = tmpl.find("#id_item_subject");
     itemSubject.focus();
     itemSubject.select();
+
+    const itemPriority = document.querySelector("#id_item_priority");
+    itemPriority.dispatchEvent(new Event("change"));
   },
 
-  "hidden.bs.modal #dlgAddInfoItem": function () {
+  "hidden.bs.modal #dlgAddInfoItem"() {
     // reset the session var to indicate that edit mode has been closed
     Session.set("topicInfoItemEditTopicId", null);
     Session.set("topicInfoItemEditInfoItemId", null);
@@ -339,29 +332,29 @@ Template.topicInfoItemEdit.events({
   },
 
   "select2:selecting #id_selResponsibleActionItem"(evt) {
-    if (evt.params.args.data.id === evt.params.args.data.text) {
-      // we have a free-text entry
-      if (!emailAddressRegExpTest.test(evt.params.args.data.text)) {
-        // no valid mail anystring@anystring.anystring
-        // prohibit non-mail free text entries
-        ConfirmationDialogFactory.makeInfoDialog(
-          i18n.__("Dialog.ActionItemResponsibleError.title"),
-          i18n.__("Dialog.ActionItemResponsibleError.body"),
-        ).show();
-        return false;
-      }
+    if (
+      evt.params.args.data.id === evt.params.args.data.text &&
+      !isEmail(evt.params.args.data.text)
+    ) {
+      // no valid mail anystring@anystring.anystring
+      // prohibit non-mail free text entries
+      ConfirmationDialogFactory.makeInfoDialog(
+        i18n.__("Dialog.ActionItemResponsibleError.title"),
+        i18n.__("Dialog.ActionItemResponsibleError.body"),
+      ).show();
+      return false;
     }
     return true;
   },
 
   "select2:select #id_selResponsibleActionItem"(evt) {
-    let respId = evt.params.data.id;
-    let respName = evt.params.data.text;
-    let aUser = Meteor.users.findOne(respId);
+    const respId = evt.params.data.id;
+    const respName = evt.params.data.text;
+    const aUser = Meteor.users.findOne(respId);
     if (
       !aUser &&
       respId === respName && // we have a free-text user here!
-      emailAddressRegExpTest.test(respName)
+      isEmail(respName)
     ) {
       // only take valid mail addresses
       _meetingSeries.addAdditionalResponsible(respName);
@@ -373,10 +366,10 @@ Template.topicInfoItemEdit.events({
     handlerShowMarkdownHint(evt);
   },
 
-  "click #btnExpandCollapse": function (evt, tmpl) {
+  "click #btnExpandCollapse"(evt, tmpl) {
     evt.preventDefault();
 
-    let detailsArea = tmpl.find("#id_item_detailInput");
+    const detailsArea = tmpl.find("#id_item_detailInput");
     detailsArea.style.display =
       detailsArea.style.display === "none" ? "inline-block" : "none";
 
@@ -386,25 +379,25 @@ Template.topicInfoItemEdit.events({
     user.storeSetting(userSettings.showAddDetail, tmpl.collapseState.get());
   },
 
-  "click #btnInfoItemCancel": function (evt) {
+  "click #btnInfoItemCancel"(evt) {
     evt.preventDefault();
     closePopupAndUnsetIsEdited();
   },
 
-  "click .close": function (evt) {
+  "click .close"(evt) {
     evt.preventDefault();
     closePopupAndUnsetIsEdited();
   },
 
-  keyup: function (evt) {
+  keyup(evt) {
     evt.preventDefault();
     if (evt.keyCode === 27) {
       closePopupAndUnsetIsEdited();
     }
   },
 
-  "keyup #id_item_detailInput": function (evt, tmpl) {
-    let inputEl = tmpl.$("#id_item_detailInput");
+  "keyup #id_item_detailInput"(evt, tmpl) {
+    const inputEl = tmpl.$("#id_item_detailInput");
 
     if (
       evt.which === 13 /*Enter*/ ||

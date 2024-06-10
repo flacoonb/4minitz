@@ -1,20 +1,20 @@
 import { expect } from "chai";
-import * as DateHelpers from "../../../imports/helpers/date";
-import * as SubElements from "../../../imports/helpers/subElements";
+import _ from "lodash";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
-import _ from "underscore";
 
-let MeetingSeriesSchema = {};
-let Meteor = {
+import * as DateHelpers from "../../../imports/helpers/date";
+import * as SubElements from "../../../imports/helpers/subElements";
+
+const MeetingSeriesSchema = {};
+const Meteor = {
   call: sinon.stub(),
-  callPromise: sinon.stub(),
+  callAsync: sinon.stub(),
 };
-let Minutes = {};
-let Topic = {};
-let UserRoles = {};
-let PromisedMethods = {};
-let MinutesFinder = {
+const Minutes = {};
+const Topic = {};
+const UserRoles = {};
+const MinutesFinder = {
   result: undefined,
   lastMinutesOfMeetingSeries() {
     return this.result;
@@ -23,7 +23,9 @@ let MinutesFinder = {
 DateHelpers["@noCallThru"] = true;
 SubElements["@noCallThru"] = true;
 
-const Random = { id: () => {} };
+const Random = {
+  id: () => {},
+};
 const jQuery = {};
 const TopicsFinder = {};
 
@@ -39,49 +41,48 @@ const { MeetingSeries } = proxyquire("../../../imports/meetingseries", {
     MeetingSeriesSchema,
     "@noCallThru": true,
   },
-  "./helpers/promisedMethods": { PromisedMethods, "@noCallThru": true },
   "./minutes": { Minutes, "@noCallThru": true },
   "./topic": { Topic, "@noCallThru": true },
   "./userroles": { UserRoles, "@noCallThru": true },
   "/imports/helpers/date": DateHelpers,
   "/imports/helpers/subElements": SubElements,
-  "meteor/underscore": { _, "@noCallThru": true },
+  lodash: { _, "@noCallThru": true },
   "./services/topicsFinder": { TopicsFinder, "@noCallThru": true },
   "/imports/services/minutesFinder": { MinutesFinder, "@noCallThru": true },
 });
 
-describe("MeetingSeries", function () {
-  describe("#constructor", function () {
+describe("MeetingSeries", () => {
+  describe("#constructor", () => {
     let meetingSeries;
 
-    beforeEach(function () {
+    beforeEach(() => {
       meetingSeries = {
         project: "foo",
         name: "bar",
       };
     });
 
-    it("sets the project correctly", function () {
-      var ms = new MeetingSeries(meetingSeries);
+    it("sets the project correctly", () => {
+      const ms = new MeetingSeries(meetingSeries);
 
       expect(ms.project).to.equal(meetingSeries.project);
     });
 
-    it("sets the name correctly", function () {
-      var ms = new MeetingSeries(meetingSeries);
+    it("sets the name correctly", () => {
+      const ms = new MeetingSeries(meetingSeries);
 
       expect(ms.name).to.equal(meetingSeries.name);
     });
   });
 
-  describe("#getMinimumAllowedDateForMinutes", function () {
+  describe("#getMinimumAllowedDateForMinutes", () => {
     let series;
 
-    beforeEach(function () {
+    beforeEach(() => {
       series = new MeetingSeries();
     });
 
-    afterEach(function () {
+    afterEach(() => {
       if (Object.prototype.hasOwnProperty.call(Minutes, "findAllIn")) {
         delete Minutes.findAllIn;
       }
@@ -99,17 +100,17 @@ describe("MeetingSeries", function () {
       );
     }
 
-    it("retrieves the date of the lastMinutes() if no id is given", function () {
-      let expectedDate = new Date();
+    it("retrieves the date of the lastMinutes() if no id is given", () => {
+      const expectedDate = new Date();
 
       MinutesFinder.result = { date: expectedDate };
 
-      var actualDate = series.getMinimumAllowedDateForMinutes();
+      const actualDate = series.getMinimumAllowedDateForMinutes();
 
       compareDates(actualDate, expectedDate);
     });
 
-    it("gets the date from the second to last minute if id of last minute is given", function () {
+    it("gets the date from the second to last minute if id of last minute is given", () => {
       let lastMinuteId = "lastMinuteId",
         expectedDate = new Date();
 
@@ -124,12 +125,12 @@ describe("MeetingSeries", function () {
         },
       ]);
 
-      var actualDate = series.getMinimumAllowedDateForMinutes(lastMinuteId);
+      const actualDate = series.getMinimumAllowedDateForMinutes(lastMinuteId);
 
       compareDates(actualDate, expectedDate);
     });
 
-    it("gets the date from the last minute if id of second to last minute is given", function () {
+    it("gets the date from the last minute if id of second to last minute is given", () => {
       let secondToLastMinuteId = "minuteId",
         expectedDate = new Date();
 
@@ -144,35 +145,34 @@ describe("MeetingSeries", function () {
         },
       ]);
 
-      var actualDate =
+      const actualDate =
         series.getMinimumAllowedDateForMinutes(secondToLastMinuteId);
 
       compareDates(actualDate, expectedDate);
     });
   });
 
-  describe("#save", function () {
+  describe("#save", () => {
     let meetingSeries;
 
-    beforeEach(function () {
+    beforeEach(() => {
       meetingSeries = new MeetingSeries({
         project: "foo",
         name: "bar",
       });
     });
 
-    it("calls the meteor method meetingseries.insert", function () {
+    it("calls the meteor method meetingseries.insert", () => {
       meetingSeries.save();
 
-      expect(Meteor.callPromise.calledOnce).to.be.true;
+      expect(Meteor.callAsync.calledOnce).to.be.true;
     });
 
-    it("sends the document to the meteor method meetingseries.insert", function () {
+    it("sends the document to the meteor method meetingseries.insert", () => {
       meetingSeries.save();
 
-      expect(
-        Meteor.callPromise.calledWith("meetingseries.insert", meetingSeries),
-      ).to.be.true;
+      expect(Meteor.callAsync.calledWith("meetingseries.insert", meetingSeries))
+        .to.be.true;
     });
   });
 });

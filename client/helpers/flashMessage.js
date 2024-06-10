@@ -1,5 +1,3 @@
-import { $ } from "meteor/jquery";
-
 const DEFAULT_MESSAGE = "Sorry, an unexpected error has occurred.";
 
 const TYPES = {
@@ -9,6 +7,9 @@ const TYPES = {
   DANGER: "danger",
 };
 
+/**
+ * Represents a flash message that can be displayed to the user.
+ */
 export class FlashMessage {
   /**
    *
@@ -37,6 +38,10 @@ export class FlashMessage {
     this._updateNotification();
   }
 
+  /**
+   * Updates the current notification with the latest title, message, type, and
+   * delay.
+   */
   _updateNotification() {
     this.currentNotification.update("title", this.title);
     this.currentNotification.update("message", this.message);
@@ -44,6 +49,17 @@ export class FlashMessage {
     this.currentNotification.update("delay", this.duration);
   }
 
+  /**
+   * Sets the values for the flash message.
+   *
+   * @param {string} title - The title of the flash message.
+   * @param {string} message - The message content of the flash message.
+   * @param {string} [type=TYPES.DANGER] - The type of the flash message (e.g.
+   *     'success', 'error', 'info').
+   * @param {number} [duration=5000] - The duration in milliseconds for which
+   *     the flash message should be displayed. If set to -1, the flash message
+   *     will not automatically close.
+   */
   _setValues(title, message, type = TYPES.DANGER, duration = 5000) {
     if (duration === -1) duration = 0;
     this.title = `<strong>${title}</strong>`;
@@ -60,13 +76,22 @@ export class FlashMessage {
    * @returns {FlashMessage}
    */
   show() {
-    this.currentNotification = $.notify(
-      this._createOptions(),
-      this._createSettings(),
-    );
+    this.currentNotification = window.Noty.overrideDefaults({
+      callbacks: {
+        onClosed: () => {
+          this.currentNotification = null;
+        },
+      },
+    }).show(this._createOptions(), this._createSettings());
     return this;
   }
 
+  /**
+   * Creates the options object for the FlashMessage notification.
+   * @returns {Object} The options object with the following properties:
+   *   - title: The title of the notification.
+   *   - message: The message content of the notification.
+   */
   _createOptions() {
     return {
       title: this.title,
@@ -74,6 +99,17 @@ export class FlashMessage {
     };
   }
 
+  /**
+   * Creates the settings object for the FlashMessage notification.
+   * @returns {Object} The settings object with the following properties:
+   *   - delay: The duration in milliseconds for which the notification should
+   * be displayed.
+   *   - type: The type of notification (e.g. 'success', 'error', 'info').
+   *   - z_index: The z-index value to ensure the notification is displayed on
+   * top.
+   *   - onClosed: A callback function that is executed when the notification is
+   * closed.
+   */
   _createSettings() {
     return {
       delay: this.duration,

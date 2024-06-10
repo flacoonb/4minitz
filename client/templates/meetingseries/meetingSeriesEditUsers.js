@@ -1,14 +1,13 @@
+import { UserRoles } from "/imports/userroles";
 import { Meteor } from "meteor/meteor";
 import { Template } from "meteor/templating";
-import { $ } from "meteor/jquery";
 
 import { addCustomValidator } from "../../helpers/customFieldValidator";
 
-import { UserRoles } from "/imports/userroles";
 import {
-  userlistClean,
   addNewUser,
   checkUserName,
+  userlistClean,
 } from "./meetingSeriesEditUsersHelpers";
 
 let _config; // of type: UsersEditConfig
@@ -25,7 +24,7 @@ Template.meetingSeriesEditUsers.onCreated(function () {
   _config = this.data; // UsersEditConfig object
 });
 
-Template.meetingSeriesEditUsers.onRendered(function () {
+Template.meetingSeriesEditUsers.onRendered(() => {
   Meteor.typeahead.inject();
 
   addCustomValidator(
@@ -41,35 +40,36 @@ Template.meetingSeriesEditUsers.onRendered(function () {
 });
 
 Template.meetingSeriesEditUsers.helpers({
-  userListClean: function () {
+  userListClean() {
     return userlistClean(
       Meteor.users.find({ isInactive: { $not: true } }).fetch(),
       _config.users.find().fetch(),
     );
   },
 
-  users: function () {
+  users() {
     return _config.users.find({}, { sort: { username: 1 } });
   },
 
-  userRoleObj: function (userID) {
-    // get user with roles from temp. user collection, not the global meteor user collection!
+  userRoleObj(userID) {
+    // get user with roles from temp. user collection, not the global meteor
+    // user collection!
     return new UserRoles(userID, _config.users);
   },
 
-  hasViewRole: function () {
+  hasViewRole() {
     // this is blaze context {{# with userRoleObj currentuser._id}}
     // So, this is a UserRoles object
     return this.hasViewRoleFor(_config.meetingSeriesID);
   },
 
-  currentRole: function () {
+  currentRole() {
     // this is blaze context {{# with userRoleObj currentuser._id}}
     // So, this is a UserRoles object
     return this.currentRoleTextFor(_config.meetingSeriesID);
   },
 
-  isModerator: function () {
+  isModerator() {
     // this is blaze context {{# with userRoleObj currentuser._id}}
     // So, this is a UserRoles object
     return this.isModeratorOf(_config.meetingSeriesID);
@@ -78,31 +78,30 @@ Template.meetingSeriesEditUsers.helpers({
   // the currently logged in user shall not be able to edit herself.
   // Eg. logged in user shall not change herself Moderator => Invited
   // or currently logged in user shall not be able to delete herself from list
-  userIsReadOnly: function () {
+  userIsReadOnly() {
     return _config.currentUserReadOnly && this._user._idOrg === Meteor.userId();
   },
 
   // generate the "<select>" HTML with possible roles and the
   // role selected that is currently attached to the user
-  rolesOptions: function () {
+  rolesOptions() {
     // this is blaze context {{# with userRoleObj currentuser._id}}
     // So, this is a UserRoles object
-    let currentRoleNum = this.currentRoleFor(_config.meetingSeriesID);
-    let userName = this.getUser().username;
-    let rolesHTML =
-      '<select id="roleSelect' +
-      userName +
-      '" class="form-control user-role-select">';
-    let rolesNames = UserRoles.allRolesNames();
-    let rolesNums = UserRoles.allRolesNumerical();
-    for (let i in rolesNames) {
-      let roleNum = rolesNums[i];
-      let roleName = rolesNames[i];
-      let startTag = "<option value='" + roleName + "'>";
-      if (roleNum === currentRoleNum) {
-        startTag = '<option value="' + roleName + '" selected="selected">';
+    const currentRoleNum = this.currentRoleFor(_config.meetingSeriesID);
+    const userName = this.getUser().username;
+    let rolesHTML = `<select id="roleSelect${userName}" class="form-control user-role-select">`;
+    const rolesNames = UserRoles.allRolesNames();
+    const rolesNums = UserRoles.allRolesNumerical();
+    for (const i in rolesNames) {
+      if (Object.prototype.hasOwnProperty.call(rolesNames, i)) {
+        const roleNum = rolesNums[i];
+        const roleName = rolesNames[i];
+        let startTag = `<option value='${roleName}'>`;
+        if (roleNum === currentRoleNum) {
+          startTag = `<option value="${roleName}" selected="selected">`;
+        }
+        rolesHTML += `${startTag + UserRoles.role2Text(roleNum)}</option>`;
       }
-      rolesHTML += startTag + UserRoles.role2Text(roleNum) + "</option>";
     }
     rolesHTML += "</select>";
     return rolesHTML;
@@ -110,37 +109,39 @@ Template.meetingSeriesEditUsers.helpers({
 
   displayUsername(userObj) {
     if (userObj.profile?.name) {
-      return userObj.profile.name + " (" + userObj.username + ")";
+      return `${userObj.profile.name} (${userObj.username})`;
     }
     return userObj.username;
   },
 });
 
 Template.meetingSeriesEditUsers.events({
-  "click #btnDeleteUser": function (evt) {
+  "click #btnDeleteUser"(evt) {
     evt.preventDefault();
     _config.users.remove({ _id: this._userId });
   },
 
   // when role select changes, update role in temp. client-only user collection
-  "change .user-role-select": function (evt) {
-    let roleName = $(evt.target).val();
-    let roleValue = UserRoles.USERROLES[roleName];
+  "change .user-role-select"(evt) {
+    const roleName = evt.target.value;
+    const roleValue = UserRoles.USERROLES[roleName];
 
-    let changedUser = _config.users.findOne(this._userId);
+    const changedUser = _config.users.findOne(this._userId);
     changedUser.roles[_config.meetingSeriesID] = [roleValue];
     _config.users.update(this._userId, { $set: { roles: changedUser.roles } });
   },
 
-  "submit #form-add-user": function (evt, tmpl) {
+  "submit #form-add-user"(evt, tmpl) {
     evt.preventDefault();
-    let newUserName = tmpl.find("#edt_AddUser").value;
+    const newUserName = tmpl.find("#edt_AddUser").value;
     addNewUser(newUserName, _config);
 
-    $(".typeahead").typeahead("val", "").typeahead("close");
+    const typeaheadInput = document.querySelector(".typeahead");
+    typeaheadInput.value = "";
+    typeaheadInput.dispatchEvent(new Event("input"));
   },
 
-  "keyup #edt_AddUser": function (evt, tmpl) {
+  "keyup #edt_AddUser"(evt, tmpl) {
     if (evt.which === 13) {
       // 'ENTER' on username <input>
       evt.stopPropagation();
@@ -150,19 +151,20 @@ Template.meetingSeriesEditUsers.events({
 
       return false;
     }
-    if (evt.which === 27) {
-      // 'ESC' on username <input>
-      evt.stopPropagation();
-      evt.preventDefault();
-      $(".typeahead").typeahead("val", "").typeahead("close");
-      return false;
+    if (evt.which !== 27) {
+      return;
     }
+    // 'ESC' on username <input>
+    evt.stopPropagation();
+    evt.preventDefault();
+    document.querySelector(".typeahead").value = "";
+    return false;
   },
 
   // a typeahead suggestion was selected from drop-down menu
-  "typeahead:select": function (evt, tmpl, selected) {
-    let newUserName = selected.value.toString();
-    $(".typeahead").typeahead("val", "");
+  "typeahead:select"(evt, tmpl, selected) {
+    const newUserName = selected.value.toString();
+    document.querySelector(".typeahead").value = "";
     addNewUser(newUserName, _config);
   },
 });

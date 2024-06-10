@@ -1,11 +1,12 @@
-let loadLDAPSettings = require('../../imports/ldap/loadLDAPSettings'),
-    importUsers = require('../../imports/ldap/import'),
-    optionParser = require('node-getopt').create([
-        ['s', 'settings=[ARG]', '4minitz Meteor settings file'],
-        ['m', 'mongourl=[ARG]', 'Mongo DB url'],
-        ['h', 'help', 'Display this help']
-    ]),
-    arg = optionParser.bindHelp().parseSystem();
+import importUsers from "../../imports/ldap/import";
+import loadLDAPSettings from "../../imports/ldap/loadLDAPSettings";
+
+const optionParser = require("node-getopt").create([
+  ["s", "settings=[ARG]", "4minitz Meteor settings file"],
+  ["m", "mongourl=[ARG]", "Mongo DB url"],
+  ["h", "help", "Display this help"],
+]);
+const arg = optionParser.bindHelp().parseSystem();
 
 // check preconditions
 // we need a meteor settings file for the ldap settings and we
@@ -17,24 +18,22 @@ let loadLDAPSettings = require('../../imports/ldap/loadLDAPSettings'),
 // parameters and if neither provides a url, exit with an error
 
 if (!arg.options.settings) {
-    optionParser.showHelp();
-    console.error('No 4minitz settings file given.');
-
-    process.exit(1);
+  optionParser.showHelp();
+  throw new Error("No 4minitz settings file given.");
 }
 
-let meteorSettingsFile = arg.options.settings;
-let mongoUrl = arg.options.mongourl || process.env.MONGO_URL;
+const meteorSettingsFile = arg.options.settings;
+const mongoUrl = arg.options.mongourl || process.env.MONGO_URL;
 
 if (!mongoUrl) {
-    optionParser.showHelp();
-    console.error('No mongo url found in env or given as parameter.');
-
-    process.exit(1);
+  optionParser.showHelp();
+  throw new Error("No mongo url found in env or given as parameter.");
 }
 
 loadLDAPSettings(meteorSettingsFile)
-    .then(ldapSettings => importUsers(ldapSettings, mongoUrl))
-    .catch(error => {
-        console.warn(`An error occurred while reading the settings file or importing users: ${error}`);
-    });
+  .then((ldapSettings) => importUsers(ldapSettings, mongoUrl))
+  .catch((error) => {
+    console.warn(
+      `An error occurred while reading the settings file or importing users: ${error}`,
+    );
+  });

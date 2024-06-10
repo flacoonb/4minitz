@@ -1,75 +1,80 @@
-import { Meteor } from 'meteor/meteor';
-import { AccountsTemplates } from 'meteor/useraccounts:core';
-import { Template } from 'meteor/templating';
-import { Session } from 'meteor/session';
-import { $ } from 'meteor/jquery';
-import { GlobalSettings } from '/imports/config/GlobalSettings';
+import { GlobalSettings } from "/imports/config/GlobalSettings";
+import { Meteor } from "meteor/meteor";
+import { ReactiveDict } from "meteor/reactive-dict";
+import { Template } from "meteor/templating";
+import { AccountsTemplates } from "meteor/useraccounts:core";
 
 const ldapEnabled = Meteor.settings.public.ldapEnabled;
 
-Template.login.onCreated(function () {
-    let defaultTab = ldapEnabled ? 'loginLdap' : 'atForm';
-    Session.setDefault('currentLoginForm', defaultTab);
+Template.login.onCreated(() => {
+  const defaultTab = ldapEnabled ? "loginLdap" : "atForm";
+  ReactiveDict.setDefault("currentLoginForm", defaultTab);
 });
 
-Template.login.onRendered(function () {
-    let tab = ldapEnabled ? 'loginLdap' : 'atForm';
-    Session.setDefault('currentLoginForm', tab);
+Template.login.onRendered(() => {
+  const tab = ldapEnabled ? "loginLdap" : "atForm";
+  ReactiveDict.setDefault("currentLoginForm", tab);
 });
 
 Template.login.helpers({
+  showTabSwitcher() {
+    return (
+      Meteor.settings.public.ldapEnabled &&
+      !Meteor.settings.public.ldapHideStandardLogin
+    );
+  },
 
-    showTabSwitcher() {
-        return (Meteor.settings.public.ldapEnabled
-            && !Meteor.settings.public.ldapHideStandardLogin);
-    },
+  tab() {
+    return ReactiveDict.get("currentLoginForm");
+  },
 
-    tab: function() {
-        return Session.get('currentLoginForm');
-    },
+  tabActive(tabFormName) {
+    if (ReactiveDict.equals("currentLoginForm", tabFormName)) {
+      return "active";
+    }
+    return "";
+  },
 
-    tabActive: function(tabFormName) {
-        if (Session.get('currentLoginForm') === tabFormName) {
-            return 'active';
-        }
-        return '';
-    },
+  showInfoOnLogin() {
+    return !Meteor.userId() && GlobalSettings.showInfoOnLogin();
+  },
 
-    showInfoOnLogin: function () {
-        return (!Meteor.userId() && GlobalSettings.showInfoOnLogin());
-    },
+  showDemoUserHint() {
+    return (
+      !Meteor.userId() &&
+      GlobalSettings.createDemoAccount() &&
+      ReactiveDict.get("currentLoginForm") === "atForm" && // only if Standard Login is active
+      AccountsTemplates.getState() === "signIn" // only show demo hint on signIn sub-template
+    );
+  },
 
-    showDemoUserHint: function () {
-        return (!Meteor.userId()
-            && GlobalSettings.createDemoAccount()
-            && Session.get('currentLoginForm') === 'atForm' // only if Standard Login is active
-            && AccountsTemplates.getState() === 'signIn'    // only show demo hint on signIn sub-template
-        );
-    },
-
-    legalNoticeEnabled: function () {
-        return Meteor.settings.public.branding.legalNotice.enabled;
-    },
-    legalNoticeLinktext: function () {
-        return Meteor.settings.public.branding.legalNotice.linkText;
-    },
+  legalNoticeEnabled() {
+    return Meteor.settings.public.branding.legalNotice.enabled;
+  },
+  legalNoticeLinktext() {
+    return Meteor.settings.public.branding.legalNotice.linkText;
+  },
 });
 
 Template.login.events({
-    'click .nav-tabs li': function(event) {
-        let currentTab = $(event.target).closest('li');
+  "click .nav-tabs li"(event) {
+    const currentTab = event.target.closest("li");
 
-        currentTab.addClass('active');
-        $('.nav-tabs li').not(currentTab).removeClass('active');
+    currentTab.classList.add("active");
+    Array.from(document.querySelectorAll(".nav-tabs li")).forEach((tab) => {
+      if (tab !== currentTab) {
+        tab.classList.remove("active");
+      }
+    });
 
-        Session.set('currentLoginForm', currentTab.data('template'));
-    },
+    ReactiveDict.set("currentLoginForm", currentTab.dataset.template);
+  },
 
-    'click #btnLegalNotice': function () {
-        window.open(GlobalSettings.getLegalNoticeExternalUrl());
-    },
+  "click #btnLegalNotice"() {
+    window.open(GlobalSettings.getLegalNoticeExternalUrl());
+  },
 
-    'click #tab_standard': function() {
-        AccountsTemplates.setState('signIn');
-    }
+  "click #tab_standard"() {
+    AccountsTemplates.setState("signIn");
+  },
 });

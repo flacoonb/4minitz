@@ -1,5 +1,4 @@
-const DDPClient = require("meteor-sdk");
-const Future = require("fibers/future");
+import DDPClient from "meteor-sdk";
 
 const ddpclient = new DDPClient({
   host: "localhost",
@@ -12,53 +11,41 @@ const ddpclient = new DDPClient({
   useSockJs: true,
 });
 
-function connect() {
-  const future = new Future();
-  ddpclient.connect(function (error) {
-    if (error) {
-      future.throw(error);
-    }
-
-    future.return();
-  });
-
-  return future;
-}
-
-function close() {
-  ddpclient.close();
-}
-
-function call() {
-  const future = new Future();
-
-  ddpclient.call(
-    arguments[0],
-    [].slice.call(arguments, 1),
-    function (err, result) {
-      if (err) {
-        future.throw(err);
+const connect = () => {
+  return new Promise((resolve, reject) => {
+    ddpclient.connect((error) => {
+      if (error) {
+        console.error(`Error connecting: ${error}`);
+        reject(error);
+      } else {
+        resolve();
       }
-      future.return(result);
-    },
-  );
+    });
+  });
+};
 
-  return future;
-}
+const close = () => {
+  ddpclient.close();
+};
+
+const call = (...args) => {
+  return new Promise((resolve, reject) => {
+    ddpclient.call(args[0], args.slice(1), (err, result) => {
+      if (err) {
+        console.error(`Error calling method: ${err}`);
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
 
 const server = {
-  connect: function () {
-    return connect().wait();
-  },
-
-  close: function () {
-    close();
-  },
-
-  call: function () {
-    return call.apply(this, arguments).wait();
-  },
+  connect: () => connect(),
+  close: () => close(),
+  call: (...args) => call(...args),
 };
 
 global.server = server;
-module.exports = server;
+export default server;

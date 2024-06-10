@@ -2,16 +2,24 @@ import { expect } from "chai";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
 
-let MinutesSchema = { find: sinon.stub(), update: sinon.stub() };
+const MinutesSchema = {
+  find: sinon.stub(),
+  update: sinon.stub(),
+};
 MinutesSchema.getCollection = () => MinutesSchema;
 
-let MeetingSeriesSchema = { find: sinon.stub() };
+const MeetingSeriesSchema = {
+  find: sinon.stub(),
+};
 MeetingSeriesSchema.getCollection = () => MeetingSeriesSchema;
 
-let TopicSchema = { find: sinon.stub(), update: sinon.stub() };
+const TopicSchema = {
+  find: sinon.stub(),
+  update: sinon.stub(),
+};
 TopicSchema.getCollection = () => TopicSchema;
 
-let MinutesFinder = {
+const MinutesFinder = {
   firstMinutesOfMeetingSeries: sinon.stub(),
   nextMinutes: sinon.stub(),
 };
@@ -29,16 +37,16 @@ const { MigrateV18 } = proxyquire("../../../../server/migrations/migrate_v18", {
   },
 });
 
-describe("Migrate Version 18", function () {
-  let firstMinutes,
-    secondMinutes,
-    topicFirstAndSecondMinutes,
-    topicFirstMinutes,
-    topicSecondMinutes,
-    itemFirstAndSecondMinutes,
-    itemSecondMinutes;
+describe("Migrate Version 18", () => {
+  let firstMinutes;
+  let secondMinutes;
+  let topicFirstAndSecondMinutes;
+  let topicFirstMinutes;
+  let topicSecondMinutes;
+  let itemFirstAndSecondMinutes;
+  let itemSecondMinutes;
 
-  beforeEach(function () {
+  beforeEach(() => {
     itemFirstAndSecondMinutes = {
       _id: "Item_AaBbCc01",
       details: [{ _id: "Detail_AaBbCc01" }],
@@ -81,7 +89,7 @@ describe("Migrate Version 18", function () {
     MinutesFinder.nextMinutes.withArgs(secondMinutes).returns(false);
   });
 
-  afterEach(function () {
+  afterEach(() => {
     MinutesSchema.find.resetHistory();
     MinutesSchema.update.resetHistory();
     TopicSchema.update.resetHistory();
@@ -89,16 +97,16 @@ describe("Migrate Version 18", function () {
     MinutesFinder.nextMinutes.resetHistory();
   });
 
-  describe("#up", function () {
+  describe("#up", () => {
     let expectedDateForElementsCreatedInFirstMinutes;
     let expectedDateForElementsCreatedIn2ndMinutes;
 
-    beforeEach(function () {
+    beforeEach(() => {
       expectedDateForElementsCreatedInFirstMinutes = firstMinutes.createdAt;
       expectedDateForElementsCreatedIn2ndMinutes = secondMinutes.createdAt;
     });
 
-    it("calls the update method of the topics collection for each different topic and sets the new fields", function () {
+    it("calls the update method of the topics collection for each different topic and sets the new fields", () => {
       MigrateV18.up();
       expect(TopicSchema.update.callCount).to.equal(2);
 
@@ -140,7 +148,7 @@ describe("Migrate Version 18", function () {
       ).to.be.true;
     });
 
-    it("sets the createdAt/updatedAt fields for all items of each topic in the topics collection", function () {
+    it("sets the createdAt/updatedAt fields for all items of each topic in the topics collection", () => {
       MigrateV18.up();
 
       const argsFirstCall = TopicSchema.update.firstCall.args;
@@ -151,7 +159,7 @@ describe("Migrate Version 18", function () {
       );
     });
 
-    it("sets the createdAt/updatedAt fields for all items of each topic in the topics collection", function () {
+    it("sets the createdAt/updatedAt fields for all items of each topic in the topics collection", () => {
       MigrateV18.up();
 
       const argsFirstCall = TopicSchema.update.firstCall.args;
@@ -165,7 +173,7 @@ describe("Migrate Version 18", function () {
       );
     });
 
-    it("updates each minutes and sets the createdAt/updatedAt fields for each topic", function () {
+    it("updates each minutes and sets the createdAt/updatedAt fields for each topic", () => {
       MigrateV18.up();
       expect(MinutesSchema.update.callCount).to.equal(2);
 
@@ -206,7 +214,7 @@ describe("Migrate Version 18", function () {
       );
     });
 
-    it("sets the createdAt/updatedAt field for all items of each topic in the minutes collection", function () {
+    it("sets the createdAt/updatedAt field for all items of each topic in the minutes collection", () => {
       MigrateV18.up();
 
       const argsFirstCall = MinutesSchema.update.firstCall.args;
@@ -244,7 +252,7 @@ describe("Migrate Version 18", function () {
       );
     });
 
-    it("sets the createdAt/updatedAt field for all details of the items of a topic in the minutes collection", function () {
+    it("sets the createdAt/updatedAt field for all details of the items of a topic in the minutes collection", () => {
       MigrateV18.up();
 
       const argsFirstCall = MinutesSchema.update.firstCall.args;
@@ -270,8 +278,8 @@ describe("Migrate Version 18", function () {
     });
   });
 
-  describe("#down", function () {
-    beforeEach(function () {
+  describe("#down", () => {
+    beforeEach(() => {
       [topicFirstAndSecondMinutes, topicFirstMinutes, topicSecondMinutes].map(
         (topic) => {
           topic.createdAt = new Date();
@@ -286,7 +294,7 @@ describe("Migrate Version 18", function () {
       );
     });
 
-    it("deletes createdAt/updatedAt fields of all documents stored in the topics collection", function () {
+    it("deletes createdAt/updatedAt fields of all documents stored in the topics collection", () => {
       MigrateV18.down();
       expect(TopicSchema.update.callCount).to.equal(2);
       expect(
@@ -301,7 +309,7 @@ describe("Migrate Version 18", function () {
       ).to.be.true;
     });
 
-    it("deletes createdAt/updatedAt fields of all documents stored in each minutes and updates them", function () {
+    it("deletes createdAt/updatedAt fields of all documents stored in each minutes and updates them", () => {
       MigrateV18.down();
       expect(MinutesSchema.update.calledTwice).to.be.true;
       const { firstCall, secondCall } = MinutesSchema.update;

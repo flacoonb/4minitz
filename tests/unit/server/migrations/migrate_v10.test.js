@@ -7,13 +7,13 @@ require("../../../../imports/helpers/date");
 const FIRST_MIN_ID = "#Min01";
 const SND_MIN_ID = "#Min02";
 
-let MinutesSchema = { update: sinon.stub(), find: sinon.stub() };
+const MinutesSchema = { update: sinon.stub(), find: sinon.stub() };
 MinutesSchema.getCollection = (_) => MinutesSchema;
 
-let MeetingSeriesSchema = { update: sinon.stub() };
+const MeetingSeriesSchema = { update: sinon.stub() };
 MeetingSeriesSchema.getCollection = (_) => MeetingSeriesSchema;
 
-let MinutesFinder = {
+const MinutesFinder = {
   firstMinutesResult: undefined,
   firstMinutesOfMeetingSeries() {
     return this.firstMinutesResult;
@@ -29,7 +29,7 @@ let MinutesFinder = {
   },
 };
 class MeteorError {}
-let Meteor = { Error: MeteorError };
+const Meteor = { Error: MeteorError };
 
 const { MigrateV10 } = proxyquire("../../../../server/migrations/migrate_v10", {
   "meteor/meteor": { Meteor, "@noCallThru": true },
@@ -41,10 +41,10 @@ const { MigrateV10 } = proxyquire("../../../../server/migrations/migrate_v10", {
   "/imports/services/minutesFinder": { MinutesFinder, "@noCallThru": true },
 });
 
-describe("Migrate Version 10", function () {
+describe("Migrate Version 10", () => {
   let firstFakeMinute, sndFakeMinute, fakeMeetingSeries;
 
-  beforeEach(function () {
+  beforeEach(() => {
     sndFakeMinute = {
       _id: SND_MIN_ID,
       topics: [{ _id: "#T01" }, { _id: "#T02" }],
@@ -69,30 +69,30 @@ describe("Migrate Version 10", function () {
     MinutesSchema.find.returns([firstFakeMinute, sndFakeMinute]);
   });
 
-  afterEach(function () {
+  afterEach(() => {
     MinutesSchema.update.resetHistory();
     MinutesSchema.find.reset();
     MeetingSeriesSchema.update.resetHistory();
   });
 
-  describe("#up", function () {
-    let checkTopicHasProperty = (topic) => {
+  describe("#up", () => {
+    const checkTopicHasProperty = (topic) => {
       expect(topic).to.have.ownProperty("createdInMinute");
     };
 
-    it("sets the createdInMinutes attribute for all topics in all minutes", function () {
+    it("sets the createdInMinutes attribute for all topics in all minutes", () => {
       MigrateV10.up();
       firstFakeMinute.topics.forEach(checkTopicHasProperty);
       sndFakeMinute.topics.forEach(checkTopicHasProperty);
     });
 
-    it("sets the createdInMinutes attribute for all topics in the meeting series", function () {
+    it("sets the createdInMinutes attribute for all topics in the meeting series", () => {
       MigrateV10.up();
       fakeMeetingSeries.topics.forEach(checkTopicHasProperty);
       fakeMeetingSeries.openTopics.forEach(checkTopicHasProperty);
     });
 
-    it("sets the correct id for the createdInMinute-attribute", function () {
+    it("sets the correct id for the createdInMinute-attribute", () => {
       MigrateV10.up();
       expect(firstFakeMinute.topics[0].createdInMinute).to.equal(FIRST_MIN_ID);
       expect(sndFakeMinute.topics[0].createdInMinute).to.equal(FIRST_MIN_ID);
@@ -111,9 +111,9 @@ describe("Migrate Version 10", function () {
     });
   });
 
-  describe("#down", function () {
-    beforeEach(function () {
-      let addCreatedInMinuteFakeAttribute = (topic) => {
+  describe("#down", () => {
+    beforeEach(() => {
+      const addCreatedInMinuteFakeAttribute = (topic) => {
         topic.createdInMinute = "fakeID";
       };
       firstFakeMinute.topics.forEach(addCreatedInMinuteFakeAttribute);
@@ -122,10 +122,10 @@ describe("Migrate Version 10", function () {
       fakeMeetingSeries.openTopics.forEach(addCreatedInMinuteFakeAttribute);
     });
 
-    it("removes the createdInMinute-attribute", function () {
+    it("removes the createdInMinute-attribute", () => {
       MigrateV10.down();
 
-      let checkTopicHasNoAttribute = (topic) => {
+      const checkTopicHasNoAttribute = (topic) => {
         expect(topic).not.have.ownProperty("createdInMinute");
       };
 

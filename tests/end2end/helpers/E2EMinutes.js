@@ -1,5 +1,5 @@
-import { E2EGlobal } from "./E2EGlobal";
 import { E2EApp } from "./E2EApp";
+import { E2EGlobal } from "./E2EGlobal";
 import { E2EMeetingSeries } from "./E2EMeetingSeries";
 import { E2EMinutesParticipants } from "./E2EMinutesParticipants";
 
@@ -33,7 +33,7 @@ export class E2EMinutes {
    *                      default: true
    */
   static finalizeCurrentMinutes(confirmDialog) {
-    let participantsInfo = new E2EMinutesParticipants();
+    const participantsInfo = new E2EMinutesParticipants();
     participantsInfo.setUserPresence(E2EApp.getCurrentUser(), true);
     browser.waitForVisible("#btn_finalizeMinutes");
     E2EGlobal.clickWithRetry("#btn_finalizeMinutes");
@@ -53,7 +53,8 @@ export class E2EMinutes {
    *
    * @param confirmDialog should the dialog be confirmed automatically
    *                      default: true
-   *        processFinalize is true, when you want to proceed finalizing Minutes without participants
+   *        processFinalize is true, when you want to proceed finalizing Minutes
+   * without participants
    */
   static finalizeCurrentMinutesWithoutParticipants(
     confirmDialog,
@@ -62,7 +63,7 @@ export class E2EMinutes {
     browser.waitForVisible("#btn_finalizeMinutes");
     E2EGlobal.clickWithRetry("#btn_finalizeMinutes");
 
-    if (processFinalize == true) {
+    if (processFinalize === true) {
       E2EMinutes.confirmQualityAssuranceDialog();
       if (E2EGlobal.SETTINGS.email?.enableMailDelivery) {
         if (confirmDialog === undefined || confirmDialog) {
@@ -91,7 +92,7 @@ export class E2EMinutes {
   }
 
   static countMinutesForSeries(aProj, aName) {
-    let selector = "a#id_linkToMinutes";
+    const selector = "a#id_linkToMinutes";
     E2EMeetingSeries.gotoMeetingSeries(aProj, aName);
     try {
       browser.waitForExist(selector);
@@ -103,7 +104,7 @@ export class E2EMinutes {
   }
 
   static getMinutesId(aDate) {
-    let selector = "a#id_linkToMinutes";
+    const selector = "a#id_linkToMinutes";
     try {
       browser.waitForExist(selector);
     } catch (e) {
@@ -112,11 +113,11 @@ export class E2EMinutes {
 
     const elements = browser.elements(selector);
 
-    for (let i in elements.value) {
-      let elemId = elements.value[i].ELEMENT;
-      let visibleText = browser.elementIdText(elemId).value;
-      if (visibleText == aDate) {
-        let linkTarget = browser.elementIdAttribute(elemId, "href").value;
+    for (const i in elements.value) {
+      const elemId = elements.value[i].ELEMENT;
+      const visibleText = browser.elementIdText(elemId).value;
+      if (visibleText === aDate) {
+        const linkTarget = browser.elementIdAttribute(elemId, "href").value;
         return linkTarget.slice(linkTarget.lastIndexOf("/") + 1);
       }
     }
@@ -129,12 +130,12 @@ export class E2EMinutes {
   }
 
   static getCurrentMinutesId() {
-    let url = browser.getUrl();
+    const url = browser.getUrl();
     return url.slice(url.lastIndexOf("/") + 1);
   }
 
   static gotoMinutes(aDate) {
-    let selector = "a#id_linkToMinutes";
+    const selector = "a#id_linkToMinutes";
     try {
       browser.waitForExist(selector);
     } catch (e) {
@@ -143,20 +144,20 @@ export class E2EMinutes {
 
     const elements = browser.elements(selector);
 
-    for (let i in elements.value) {
-      let elemId = elements.value[i].ELEMENT;
-      let visibleText = browser.elementIdText(elemId).value;
-      if (visibleText == aDate) {
+    for (const i in elements.value) {
+      const elemId = elements.value[i].ELEMENT;
+      const visibleText = browser.elementIdText(elemId).value;
+      if (visibleText === aDate) {
         browser.elementIdClick(elemId);
         E2EGlobal.waitSomeTime();
         return true;
       }
     }
-    throw new Error("Could not find Minutes '" + aDate + "'");
+    throw new Error(`Could not find Minutes '${aDate}'`);
   }
 
   static gotoLatestMinutes() {
-    let selector = "a#id_linkToMinutes";
+    const selector = "a#id_linkToMinutes";
 
     try {
       browser.waitForExist(selector);
@@ -172,7 +173,7 @@ export class E2EMinutes {
   }
 
   static gotoParentMeetingSeries() {
-    let selector = "a#id_linkToParentSeries";
+    const selector = "a#id_linkToParentSeries";
     try {
       browser.waitForExist(selector);
     } catch (e) {

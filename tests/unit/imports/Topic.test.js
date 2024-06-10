@@ -1,15 +1,16 @@
 import { expect } from "chai";
-import * as DateHelpers from "../../../imports/helpers/date";
-import * as SubElements from "../../../imports/helpers/subElements";
+import { _ } from "lodash";
 import proxyquire from "proxyquire";
 import sinon from "sinon";
-import _ from "underscore";
+
+import * as DateHelpers from "../../../imports/helpers/date";
+import * as SubElements from "../../../imports/helpers/subElements";
 
 class MeteorError {}
-let Meteor = {
+const Meteor = {
   call: sinon.stub(),
   Error: MeteorError,
-  callPromise: sinon.stub(),
+  callAsync: sinon.stub(),
   user: () => {
     return { username: "unit-test" };
   },
@@ -42,12 +43,12 @@ class Minutes {
   }
 }
 
-let dummyMinute = new Minutes(minuteId);
-let dummySeries = new MeetingSeries(meetingSeriesId);
+const dummyMinute = new Minutes(minuteId);
+const dummySeries = new MeetingSeries(meetingSeriesId);
 
 const Random = {
   i: 1,
-  id: function () {
+  id() {
     return this.i++;
   },
 };
@@ -57,13 +58,12 @@ DateHelpers["@noCallThru"] = true;
 
 const { Label } = proxyquire("../../../imports/label", {
   "meteor/meteor": { Meteor, "@noCallThru": true },
-  "meteor/underscore": { _, "@noCallThru": true },
 });
 
 const { InfoItem } = proxyquire("../../../imports/infoitem", {
   "meteor/meteor": { Meteor, "@noCallThru": true },
   "meteor/random": { Random, "@noCallThru": true },
-  "meteor/underscore": { _, "@noCallThru": true },
+  lodash: { _, "@noCallThru": true },
   "/imports/user": { null: null, "@noCallThru": true },
   "/imports/helpers/date": DateHelpers,
   "./label": { Label, "@noCallThru": true },
@@ -82,72 +82,74 @@ const { InfoItemFactory } = proxyquire("../../../imports/InfoItemFactory", {
 const { Topic } = proxyquire("../../../imports/topic", {
   "meteor/meteor": { Meteor, "@noCallThru": true },
   "meteor/random": { Random, "@noCallThru": true },
-  "meteor/underscore": { _, "@noCallThru": true },
   "/imports/helpers/subElements": SubElements,
   "./label": { Label, "@noCallThru": true },
+  lodash: { _, "@noCallThru": true },
   "./infoitem": { InfoItem, "@noCallThru": true },
   "./InfoItemFactory": { InfoItemFactory, "@noCallThru": true },
   "./minutes": { Minutes, "@noCallThru": true },
   "./meetingseries": { MeetingSeries, "@noCallThru": true },
-  "./helpers/promisedMethods": { null: null, "@noCallThru": true },
+
   "./collections/minutes_private": { null: null, "@noCallThru": true },
 });
-
+// skipcq: JS-0241
 describe("Topic", function () {
   let topicDoc;
-
+  // skipcq: JS-0241
   beforeEach(function () {
     topicDoc = {
       subject: "topic-subject",
       infoItems: [],
     };
   });
-
+  // skipcq: JS-0241
   describe("#constructor", function () {
+    // skipcq: JS-0241
     it("sets the reference to the parent minute correctly", function () {
-      let myTopic = new Topic(dummyMinute._id, topicDoc);
+      const myTopic = new Topic(dummyMinute._id, topicDoc);
       expect(myTopic._parentMinutes).to.equal(dummyMinute);
     });
-
+    // skipcq: JS-0241
     it("can instantiate a topic with the parent minutes object instead of its id", function () {
-      let myTopic = new Topic(dummyMinute, topicDoc);
+      const myTopic = new Topic(dummyMinute, topicDoc);
       expect(myTopic._parentMinutes).to.equal(dummyMinute);
     });
-
+    // skipcq: JS-0241
     it("sets the subject correctly", function () {
-      let myTopic = new Topic(dummyMinute._id, topicDoc);
+      const myTopic = new Topic(dummyMinute._id, topicDoc);
       expect(myTopic._topicDoc.subject).to.equal(topicDoc.subject);
     });
-
+    // skipcq: JS-0241
     it("sets the initial value of the isOpen-flag correctly", function () {
-      let myTopic = new Topic(dummyMinute._id, topicDoc);
+      const myTopic = new Topic(dummyMinute._id, topicDoc);
       expect(myTopic._topicDoc.isOpen).to.be.true;
     });
-
+    // skipcq: JS-0241
     it("sets the initial value of the isNew-flag correctly", function () {
-      let myTopic = new Topic(dummyMinute._id, topicDoc);
+      const myTopic = new Topic(dummyMinute._id, topicDoc);
       expect(myTopic._topicDoc.isNew).to.be.true;
     });
-
+    // skipcq: JS-0241
     it("enforces infoItems to be of type Array", function () {
       topicDoc.infoItems = "something";
-      let myTopic = new Topic(dummyMinute._id, topicDoc);
+      const myTopic = new Topic(dummyMinute._id, topicDoc);
 
       expect(myTopic._topicDoc.infoItems).to.be.an("array");
     });
   });
-
+  // skipcq: JS-0241
   it("#findTopicIndexInArray", function () {
-    let topicArray = [topicDoc];
-    let index = Topic.findTopicIndexInArray(topicDoc._id, topicArray);
+    const topicArray = [topicDoc];
+    const index = Topic.findTopicIndexInArray(topicDoc._id, topicArray);
     expect(index).to.equal(0);
   });
-
+  // skipcq: JS-0241
   describe("#hasOpenActionItem", function () {
+    // skipcq: JS-0241
     it("returns false if the topic does not have any sub items", function () {
       expect(Topic.hasOpenActionItem(topicDoc)).to.be.false;
     });
-
+    // skipcq: JS-0241
     it("returns true if the topic has at least one open action items", function () {
       topicDoc.infoItems.push({
         itemType: "actionItem",
@@ -160,7 +162,7 @@ describe("Topic", function () {
 
       expect(Topic.hasOpenActionItem(topicDoc)).to.be.true;
     });
-
+    // skipcq: JS-0241
     it("returns false if the topic has only closed action items", function () {
       topicDoc.infoItems.push({
         itemType: "actionItem",
@@ -173,7 +175,7 @@ describe("Topic", function () {
 
       expect(Topic.hasOpenActionItem(topicDoc)).to.be.false;
     });
-
+    // skipcq: JS-0241
     it("returns false if the topic has only info items (whose open state is unimportant)", function () {
       topicDoc.infoItems.push({
         itemType: "infoItem",
@@ -189,20 +191,20 @@ describe("Topic", function () {
       });
       expect(Topic.hasOpenActionItem(topicDoc)).to.be.false;
     });
-
+    // skipcq: JS-0241
     it("returns true if the topic has a open action item (object method call)", function () {
       topicDoc.infoItems.push({
         itemType: "actionItem",
         isOpen: true,
       });
-      let myTopic = new Topic(dummyMinute._id, topicDoc);
+      const myTopic = new Topic(dummyMinute._id, topicDoc);
       expect(myTopic.hasOpenActionItem()).to.be.true;
     });
   });
-
+  // skipcq: JS-0241
   describe("#invalidateIsNewFlag", function () {
     let myTopic;
-
+    // skipcq: JS-0241
     beforeEach(function () {
       topicDoc.isNew = true;
       topicDoc.infoItems.push({
@@ -213,67 +215,68 @@ describe("Topic", function () {
       });
       myTopic = new Topic(dummyMinute._id, topicDoc);
     });
-
+    // skipcq: JS-0241
     it("clears the isNew-Flag of the topic itself", function () {
       myTopic.invalidateIsNewFlag();
       expect(topicDoc.isNew).to.be.false;
     });
-
+    // skipcq: JS-0241
     it("clears the isNew-Flag of the action item", function () {
       myTopic.invalidateIsNewFlag();
       expect(topicDoc.infoItems[0].isNew).to.be.false;
     });
   });
-
+  // skipcq: JS-0241
   it("#toggleState", function () {
-    let myTopic = new Topic(dummyMinute._id, topicDoc);
+    const myTopic = new Topic(dummyMinute._id, topicDoc);
 
-    let oldState = myTopic._topicDoc.isOpen;
+    const oldState = myTopic._topicDoc.isOpen;
 
     myTopic.toggleState();
 
     // state should have changed
     expect(myTopic._topicDoc.isOpen).to.not.equal(oldState);
   });
-
+  // skipcq: JS-0241
   describe("#isRecurring", function () {
     let myTopic;
-
+    // skipcq: JS-0241
     beforeEach(function () {
       myTopic = new Topic(dummyMinute._id, topicDoc);
     });
-
+    // skipcq: JS-0241
     it("sets the default value correctly", function () {
       expect(myTopic.isRecurring()).to.be.false;
     });
-
+    // skipcq: JS-0241
     it("returns the correct value", function () {
       myTopic.getDocument().isRecurring = true;
       expect(myTopic.isRecurring()).to.be.true;
     });
   });
-
+  // skipcq: JS-0241
   describe("#toggleRecurring", function () {
     let myTopic;
-
+    // skipcq: JS-0241
     beforeEach(function () {
       myTopic = new Topic(dummyMinute._id, topicDoc);
     });
-
+    // skipcq: JS-0241
     it("can change the value correctly", function () {
       myTopic.toggleRecurring();
       expect(myTopic.isRecurring()).to.be.true;
     });
-
+    // skipcq: JS-0241
     it("can reset the isRecurring-Flag", function () {
       myTopic.toggleRecurring();
       myTopic.toggleRecurring();
       expect(myTopic.isRecurring()).to.be.false;
     });
   });
-
+  // skipcq: JS-0241
   describe("#upsertInfoItem", function () {
-    let myTopic, topicItemDoc;
+    let myTopic;
+    let topicItemDoc;
 
     beforeEach(function () {
       myTopic = new Topic(dummyMinute._id, topicDoc);
@@ -283,7 +286,7 @@ describe("Topic", function () {
         createdAt: new Date(),
       };
     });
-
+    // skipcq: JS-0241
     it("adds a new info item to our topic", function () {
       myTopic.upsertInfoItem(topicItemDoc);
 
@@ -298,12 +301,12 @@ describe("Topic", function () {
         "the subject should be set correctly",
       ).to.equal(topicItemDoc.subject);
     });
-
+    // skipcq: JS-0241
     it("updates an existing info item", function () {
       myTopic.upsertInfoItem(topicItemDoc);
 
       // Change the subject and call the upsertTopicItem method again
-      let topicItem = myTopic.getInfoItems()[0];
+      const topicItem = myTopic.getInfoItems()[0];
       topicItem.subject = "new_subject";
 
       myTopic.upsertInfoItem(topicItem);
@@ -322,10 +325,10 @@ describe("Topic", function () {
       ).to.equal(topicItem.subject);
     });
   });
-
+  // skipcq: JS-0241
   it("#findInfoItem", function () {
-    let myTopic = new Topic(dummyMinute._id, topicDoc);
-    let infoItemDoc = {
+    const myTopic = new Topic(dummyMinute._id, topicDoc);
+    const infoItemDoc = {
       _id: "AaBbCcDd01",
       subject: "info-item-subject",
       createdAt: new Date(),
@@ -348,16 +351,16 @@ describe("Topic", function () {
       "the correct info item should be found",
     ).to.equal(infoItemDoc.subject);
   });
-
+  // skipcq: JS-0241
   it("#removeInfoItem", function () {
-    let myTopic = new Topic(dummyMinute._id, topicDoc);
+    const myTopic = new Topic(dummyMinute._id, topicDoc);
 
-    let infoItemDoc = {
+    const infoItemDoc = {
       _id: "AaBbCcDd01",
       subject: "info-item-subject",
       createdAt: new Date(),
     };
-    let infoItemDoc2 = {
+    const infoItemDoc2 = {
       _id: "AaBbCcDd02",
       subject: "info-item-subject2",
       createdAt: new Date(),
@@ -368,12 +371,12 @@ describe("Topic", function () {
     myTopic.upsertInfoItem(infoItemDoc2);
 
     // check that the two info items was added
-    let initialLength = myTopic.getInfoItems().length;
+    const initialLength = myTopic.getInfoItems().length;
 
     // remove the second one
     myTopic.removeInfoItem(infoItemDoc2._id);
 
-    let diff = initialLength - myTopic.getInfoItems().length;
+    const diff = initialLength - myTopic.getInfoItems().length;
 
     // check that there are now only one items
     expect(
@@ -387,10 +390,10 @@ describe("Topic", function () {
       "The other info item should not be removed.",
     ).to.equal(infoItemDoc._id);
   });
-
+  // skipcq: JS-0241
   describe("#tailorTopic", function () {
     let myTopic;
-
+    // skipcq: JS-0241
     beforeEach(function () {
       topicDoc.infoItems.push({
         subject: "myInfoItem",
@@ -410,23 +413,23 @@ describe("Topic", function () {
       });
       myTopic = new Topic(dummyMinute._id, topicDoc);
     });
-
+    // skipcq: JS-0241
     it("removes all info items and closed action items", function () {
       myTopic.tailorTopic();
 
       expect(myTopic.getInfoItems()).to.have.length(1);
     });
-
+    // skipcq: JS-0241
     it("keeps the open action items", function () {
       myTopic.tailorTopic();
 
       expect(myTopic._topicDoc.infoItems[0].isOpen).to.be.true;
     });
   });
-
+  // skipcq: JS-0241
   describe("#getOpenActionItems", function () {
     let myTopic;
-
+    // skipcq: JS-0241
     beforeEach(function () {
       topicDoc.infoItems.push({
         subject: "myInfoItem",
@@ -448,11 +451,11 @@ describe("Topic", function () {
       });
       myTopic = new Topic(dummyMinute._id, topicDoc);
     });
-
+    // skipcq: JS-0241
     it("returns the correct amount of items", function () {
       expect(myTopic.getOpenActionItems()).to.have.length(2);
     });
-
+    // skipcq: JS-0241
     it("returns only open action items", function () {
       myTopic.getOpenActionItems().forEach((item) => {
         expect(item, "the item should be a action item").to.have.ownProperty(
@@ -462,13 +465,13 @@ describe("Topic", function () {
       });
     });
   });
-
+  // skipcq: JS-0241
   it("#save", function () {
-    let myTopic = new Topic(dummyMinute._id, topicDoc);
+    const myTopic = new Topic(dummyMinute._id, topicDoc);
 
     // the save-method should call the upsertTopic-Method of the parent Minute
     // so we spy on it
-    var spy = sinon.spy(dummyMinute, "upsertTopic");
+    const spy = sinon.spy(dummyMinute, "upsertTopic");
 
     myTopic.save();
 
@@ -481,9 +484,9 @@ describe("Topic", function () {
 
     spy.restore();
   });
-
+  // skipcq: JS-0241
   it("#getDocument", function () {
-    let myTopic = new Topic(dummyMinute._id, topicDoc);
+    const myTopic = new Topic(dummyMinute._id, topicDoc);
 
     expect(myTopic.getDocument()).to.equal(topicDoc);
   });

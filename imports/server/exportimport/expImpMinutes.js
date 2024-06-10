@@ -1,12 +1,22 @@
 const fs = require("fs");
 const EJSON = require("bson");
-let ExpImpTopics = require("./expImpTopics");
+const ExpImpTopics = require("./expImpTopics");
 
 class ExpImpMinutes {
   static get FILENAME_POSTFIX() {
     return "_minutes.json";
   }
-
+  /**
+   * Export minutes of a meeting series to a file and collect additional user
+   * IDs.
+   * @todo big function. consider refactoring.
+   * @param {Object} db - The database object.
+   * @param {string} msID - The ID of the meeting series.
+   * @param {Object} userIDs - The object to collect additional user IDs.
+   * @returns {Promise<Object>} A promise that resolves with the database object
+   *     and the collected user IDs.
+   * @throws {Error} If the meeting series ID is unknown.
+   */
   static doExport(db, msID, userIDs) {
     return new Promise((resolve, reject) => {
       db.collection("minutes")
@@ -17,11 +27,7 @@ class ExpImpMinutes {
             const minFile = msID + ExpImpMinutes.FILENAME_POSTFIX;
             fs.writeFileSync(minFile, EJSON.stringify(allMinutesDoc, null, 2));
             console.log(
-              "Saved: " +
-                minFile +
-                " with " +
-                allMinutesDoc.length +
-                " minutes",
+              `Saved: ${minFile} with ${allMinutesDoc.length} minutes`,
             );
 
             // Collect additional invited / informed users from older minutes
@@ -54,13 +60,13 @@ class ExpImpMinutes {
             });
 
             resolve({ db, userIDs });
-          } else {
-            return reject("Unknown meeting series ID: " + msID);
+            return;
           }
+          return reject(new Error(`Unknown meeting series ID: ${msID}`));
         });
     });
   }
-
+  // TODO big function. consider refactoring.
   static doImport(db, msID, usrMap) {
     return new Promise((resolve, reject) => {
       const minFile = msID + ExpImpMinutes.FILENAME_POSTFIX;
@@ -68,10 +74,12 @@ class ExpImpMinutes {
       try {
         minDoc = EJSON.parse(fs.readFileSync(minFile, "utf8"));
         if (!minDoc) {
-          return reject("Could not read minutes file " + minFile);
+          return reject(new Error(`Could not read minutes file ${minFile}`));
         }
       } catch (e) {
-        return reject("Could not read minutes file " + minFile + "\n" + e);
+        return reject(
+          new Error(`Could not read minutes file ${minFile}\n${e}`),
+        );
       }
 
       // Replace old user IDs with new users IDs
@@ -81,61 +89,55 @@ class ExpImpMinutes {
       return db
         .collection("minutes")
         .deleteMany({ _id: { $in: minIDs } }) // delete existing minutes with same IDs
-        .then(function (res) {
+        .then((res) => {
           if (res.result && !res.result.ok) {
             console.log(res);
           }
           return db
             .collection("minutes")
             .insertMany(minDoc) // insert imported minutes
-            .then(function (res) {
+            .then((res) => {
               if (res.result.ok === 1 && res.result.n === minDoc.length) {
-                console.log(
-                  "OK, inserted " + res.result.n + " meeting minutes.",
-                );
+                console.log(`OK, inserted ${res.result.n} meeting minutes.`);
                 resolve({ db, usrMap });
               } else {
-                reject("Could not insert meeting minutes");
+                reject(new Error("Could not insert meeting minutes"));
               }
             });
         });
     });
   }
-
+  // TODO big function. consider refactoring.
   static patchUsers(minDoc, usrMap) {
-    let minIDs = [];
-    for (let m = 0; m < minDoc.length; m++) {
+    const minIDs = [];
+    for (const element of minDoc) {
       // iterate all minutes
-      minIDs.push(minDoc[m]._id);
+      minIDs.push(element._id);
       for (
         let i = 0;
-        minDoc[m].visibleFor && i < minDoc[m].visibleFor.length;
+        element.visibleFor && i < element.visibleFor.length;
         i++
       ) {
-        minDoc[m].visibleFor[i] = usrMap[minDoc[m].visibleFor[i]];
+        element.visibleFor[i] = usrMap[element.visibleFor[i]];
       }
       for (
         let i = 0;
-        minDoc[m].informedUsers && i < minDoc[m].informedUsers.length;
+        element.informedUsers && i < element.informedUsers.length;
         i++
       ) {
-        minDoc[m].informedUsers[i] = usrMap[minDoc[m].informedUsers[i]];
+        element.informedUsers[i] = usrMap[element.informedUsers[i]];
       }
       for (
         let i = 0;
-        minDoc[m].participants && i < minDoc[m].participants.length;
+        element.participants && i < element.participants.length;
         i++
       ) {
-        minDoc[m].participants[i].userId =
-          usrMap[minDoc[m].participants[i].userId];
+        element.participants[i].userId = usrMap[element.participants[i].userId];
       }
 
       // iterate topics
-      for (let t = 0; minDoc[m].topics && t < minDoc[m].topics.length; t++) {
-        minDoc[m].topics[t] = ExpImpTopics.patchUsers(
-          minDoc[m].topics[t],
-          usrMap,
-        );
+      for (let t = 0; element.topics && t < element.topics.length; t++) {
+        element.topics[t] = ExpImpTopics.patchUsers(element.topics[t], usrMap);
       }
     }
 

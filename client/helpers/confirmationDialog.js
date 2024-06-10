@@ -1,6 +1,5 @@
 import { _ } from "lodash";
 import { Blaze } from "meteor/blaze";
-import { $ } from "meteor/jquery";
 import { Template } from "meteor/templating";
 import { i18n } from "meteor/universe:i18n";
 
@@ -8,7 +7,7 @@ const DIALOG_TEMPLATE = Template.confirmationDialog;
 
 export class ConfirmationDialog {
   constructor(options, callbacks = {}) {
-    this.options = _.extend(
+    this.options = _.assignIn(
       {
         title: i18n.__("Dialog.ConfirmDelete.title"),
         content: i18n.__("Dialog.ConfirmDelete.body"),
@@ -20,9 +19,9 @@ export class ConfirmationDialog {
       },
       options,
     ); // overwrite above defaults with given options
-    this.callback = _.extend(
+    this.callback = _.assignIn(
       {
-        onSuccess: function () {},
+        onSuccess() {},
       },
       callbacks,
     );
@@ -45,19 +44,20 @@ export class ConfirmationDialog {
   }
 
   _renderDialog() {
-    let dialogData = this.options;
+    const dialogData = this.options;
     this.dialogTmpl = Blaze.renderWithData(
       this.dialogTemplate,
       dialogData,
-      $("body").get("0"),
+      document.body,
     );
-    this.dialog = $(this.dialogTmpl.firstNode()).find(".modal");
+    this.dialog = this.dialogTmpl.firstNode().querySelector(".modal");
   }
 
   _renderContentTemplate() {
-    let tmplOpt = this.options.template;
+    const tmplOpt = this.options.template;
     if (tmplOpt) {
-      let template = typeof tmplOpt === "string" ? Template[tmplOpt] : tmplOpt;
+      const template =
+        typeof tmplOpt === "string" ? Template[tmplOpt] : tmplOpt;
       Blaze.renderWithData(
         template,
         this.options.templateData,
@@ -69,8 +69,8 @@ export class ConfirmationDialog {
   _removeDialogOnHide() {
     this.dialog.on("hidden.bs.modal", () => {
       this.hide();
-      if ($(".modal:visible").length) {
-        $("body").addClass("modal-open");
+      if (document.querySelectorAll(".modal:visible").length) {
+        document.body.classList.add("modal-open");
       }
     });
   }

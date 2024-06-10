@@ -3,13 +3,13 @@ import proxyquire from "proxyquire";
 import sinon from "sinon";
 
 class MeteorError {}
-let Meteor = {
+const Meteor = {
   Error: MeteorError,
   absoluteUrl: (path, config) => {
     if (!path) path = "";
 
     if (config?.rootUrl) {
-      if (path !== "") path = "/" + path;
+      if (path !== "") path = `/${path}`;
       return config.rootUrl + path;
     }
     return path;
@@ -77,7 +77,7 @@ describe("GlobalSettings", function () {
 
     it("returns the alternative address of the current user if property is left empty", function () {
       Meteor.settings.email.defaultEMailSenderAddress = "";
-      let alternative = "alternativeSenderAddress";
+      const alternative = "alternativeSenderAddress";
       expect(GlobalSettings.getDefaultEmailSenderAddress(alternative)).to.equal(
         alternative,
       );

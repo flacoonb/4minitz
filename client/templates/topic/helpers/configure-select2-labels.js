@@ -1,32 +1,36 @@
-import { i18n } from 'meteor/universe:i18n';
-import {Minutes} from '../../../../imports/minutes';
-import $ from 'jquery';
+import { i18n } from "meteor/universe:i18n";
 
-export const configureSelect2Labels = (minutesId, elementSelector, editItem) => {
-    const aMin = new Minutes(minutesId);
-    const aSeries = aMin.parentMeetingSeries();
+import { Minutes } from "../../../../imports/minutes";
 
-    const selectLabels = $(elementSelector);
-    selectLabels.find('option')     // clear all <option>s
-        .remove();
+export const configureSelect2Labels = (
+  minutesId,
+  elementSelector,
+  editItem,
+) => {
+  const aMin = new Minutes(minutesId);
+  const aSeries = aMin.parentMeetingSeries();
 
-    const selectOptions = [];
+  const selectLabels = document.querySelector(elementSelector);
+  selectLabels
+    .find("option") // clear all <option>s
+    .remove();
 
-    aSeries.getAvailableLabels().forEach(label => {
-        selectOptions.push ({id: label._id, text: label.name});
-    });
+  const selectOptions = [];
 
-    selectLabels.select2({
-        placeholder: i18n.__('MeetingSeries.Labels.select'),
-        tags: true,                     // Allow freetext adding
-        tokenSeparators: [',', ';'],
-        data: selectOptions             // push <option>s data
-    });
+  aSeries.getAvailableLabels().forEach((label) => {
+    selectOptions.push({ id: label._id, text: label.name });
+  });
 
+  selectLabels.select2({
+    placeholder: i18n.__("MeetingSeries.Labels.select"),
+    tags: true, // Allow freetext adding
+    tokenSeparators: [",", ";"],
+    data: selectOptions, // push <option>s data
+  });
 
-    // select the options that where stored with this topic last time
-    if (editItem) {
-        selectLabels.val(editItem.getLabelsRawArray());
-    }
-    selectLabels.trigger('change');
+  // select the options that where stored with this topic last time
+  if (editItem) {
+    selectLabels.val(editItem.getLabelsRawArray());
+  }
+  selectLabels.trigger("change");
 };

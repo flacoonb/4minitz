@@ -16,10 +16,10 @@ const IGNOREKEYS = {
 };
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-let fs = require("fs");
-let yaml = require("js-yaml");
+const fs = require("fs");
+const yaml = require("js-yaml");
 
-const en_yaml = __dirname + "/../../both/i18n/en.i18n.yml";
+const en_yaml = `${__dirname}/../../both/i18n/en.i18n.yml`;
 let anyErrorExitCodeToShell = 0;
 let globalErrorCount = 0;
 let globalWarningCount = 0;
@@ -27,24 +27,23 @@ let globalWarningCount = 0;
 console.log("Test_I18N_Resources");
 console.log("-------------------");
 console.log(
-  "Test if all needed string resources used in code are present in YAML: " +
-    en_yaml,
+  `Test if all needed string resources used in code are present in YAML: ${en_yaml}`,
 );
 
-let dictKeysFromYaml = {};
+const dictKeysFromYaml = {};
 let dictKeysFromCode = {};
 let count = 0;
 
 // Recursive find files with file extension
 function collectFilesRecursive(dir, extension) {
   let results = [];
-  let list = fs.readdirSync(dir);
-  list.forEach(function (file) {
-    file = dir + "/" + file;
-    let stat = fs.statSync(file);
+  const list = fs.readdirSync(dir);
+  list.forEach((file) => {
+    file = `${dir}/${file}`;
+    const stat = fs.statSync(file);
     if (stat?.isDirectory()) {
       /* Recurse into a subdirectory */
-      let aDir = file;
+      const aDir = file;
       if (
         !aDir.endsWith("/node_modules") &&
         !aDir.endsWith("/.deploy") &&
@@ -69,13 +68,13 @@ function collectFilesRecursive(dir, extension) {
 
 // Recursively iterate a JS object build full pathes of keys
 function buildFullPathes(obj, stack, separator = ".") {
-  for (let property in obj) {
+  for (const property in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, property)) {
       if (typeof obj[property] == "object") {
-        if (!stack) {
-          buildFullPathes(obj[property], property);
-        } else {
+        if (stack) {
           buildFullPathes(obj[property], stack + separator + property);
+        } else {
+          buildFullPathes(obj[property], property);
         }
       } else {
         dictKeysFromYaml[stack + separator + property] = 0; // Remember leaf!
@@ -87,35 +86,31 @@ function buildFullPathes(obj, stack, separator = ".") {
 function checkCodeUsage(extension, keyPattern) {
   dictKeysFromCode = {};
   let localErrorCount = 0;
-  let files_js = collectFilesRecursive(__dirname + "/../..", extension);
+  const files_js = collectFilesRecursive(`${__dirname}/../..`, extension);
 
-  // Find all i18n __ keys used in this file, according to regexp key pattern provided
+  // Find all i18n __ keys used in this file, according to regexp key pattern
+  // provided
   files_js.forEach((jsFile) => {
     const content = fs.readFileSync(jsFile, "utf8");
-    const re = keyPattern;
     let m;
     do {
-      m = re.exec(content);
+      m = keyPattern.exec(content);
       if (m && !IGNOREKEYS[m[1]]) {
         // we have a match that is NOT in IGNOREKEYS
-        if (dictKeysFromCode[m[1]]) {
-          dictKeysFromCode[m[1]] = dictKeysFromCode[m[1]] + "\n" + jsFile;
-        } else {
-          dictKeysFromCode[m[1]] = jsFile;
-        }
+        dictKeysFromCode[m[1]] = dictKeysFromCode[m[1]]
+          ? `${dictKeysFromCode[m[1]]}\n${jsFile}`
+          : jsFile;
         count++;
       }
     } while (m);
   });
-  console.log("#keys in " + extension + ": " + count);
+  console.log(`#keys in ${extension}: ${count}`);
 
   // Check if needed keys from code exist in YAML
   for (const keyFromCode in dictKeysFromCode) {
     if (dictKeysFromYaml[keyFromCode] === undefined) {
-      console.log(
-        "I18N-ERROR: >" + keyFromCode + "< not found in YAML needed by:",
-      );
-      console.log(dictKeysFromCode[keyFromCode] + "\n");
+      console.log(`I18N-ERROR: >${keyFromCode}< not found in YAML needed by:`);
+      console.log(`${dictKeysFromCode[keyFromCode]}\n`);
       anyErrorExitCodeToShell = 1;
       localErrorCount++;
       globalErrorCount++;
@@ -123,7 +118,7 @@ function checkCodeUsage(extension, keyPattern) {
       dictKeysFromYaml[keyFromCode]++; // increase usage of this key
     }
   }
-  console.log("#I18N Errors for " + extension + ": " + localErrorCount);
+  console.log(`#I18N Errors for ${extension}: ${localErrorCount}`);
   console.log("---------------------------------------------");
   console.log("");
 }
@@ -137,14 +132,15 @@ try {
   console.log(e);
   anyErrorExitCodeToShell = 10;
 }
-// Recursively walk the YAML JS object, build key pathes like: 'Admin.Users.State.column'
+// Recursively walk the YAML JS object, build key pathes like:
+// 'Admin.Users.State.column'
 if (yaml_doc) {
   buildFullPathes(yaml_doc, ""); // ==> results in dictKeysFromYaml
 } else {
   console.log("Error: could not parse YAML");
   anyErrorExitCodeToShell = 20;
 }
-console.log("#keys in YAML: " + Object.keys(dictKeysFromYaml).length);
+console.log(`#keys in YAML: ${Object.keys(dictKeysFromYaml).length}`);
 console.log("---------------------------------------------");
 console.log("");
 
@@ -152,22 +148,22 @@ console.log("");
 // js: i18n.__('Admin.Users.State.inactive'); => Admin.Users.State.inactive
 checkCodeUsage(".js", /i18n\.__\s*\(\s*["']([^"']+)/gm);
 
-// html: {{__ 'Dialog.ConfirmDeleteTopic.allowed'}} => Dialog.ConfirmDeleteTopic.allowed
+// html: {{__ 'Dialog.ConfirmDeleteTopic.allowed'}} =>
+// Dialog.ConfirmDeleteTopic.allowed
 checkCodeUsage(".html", /{{__\s*["']([^"']+)/gm);
 
-// ---------------------------------------------------------------  YAML Warnings
+// ---------------------------------------------------------------  YAML
+// Warnings
 for (const keyFromYaml in dictKeysFromYaml) {
   if (!keyFromYaml.startsWith("._") && dictKeysFromYaml[keyFromYaml] === 0) {
-    console.log(
-      "I18N-Warning: >" + keyFromYaml + "< from YAML never used in code.",
-    );
+    console.log(`I18N-Warning: >${keyFromYaml}< from YAML never used in code.`);
     globalWarningCount++;
   }
 }
 
 console.log("");
-console.log("#I18N Errors Total  : " + globalErrorCount);
-console.log("#I18N Warnings Total: " + globalWarningCount);
+console.log(`#I18N Errors Total  : ${globalErrorCount}`);
+console.log(`#I18N Warnings Total: ${globalWarningCount}`);
 console.log("");
 
 process.exitCode = anyErrorExitCodeToShell;

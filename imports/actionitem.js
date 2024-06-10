@@ -1,8 +1,18 @@
+import { currentDatePlusDeltaDays } from "./helpers/date";
 import { InfoItem } from "./infoitem";
 import { Priority } from "./priority";
-import { currentDatePlusDeltaDays } from "./helpers/date";
 
+/**
+ * Represents an action item.
+ * @extends InfoItem
+ */
 export class ActionItem extends InfoItem {
+  /**
+   * Represents an ActionItem object.
+   * @constructs ActionItem
+   * @param {ParentTopic} parentTopic - The parent topic of the action item.
+   * @param {Source} source - The source of the action item.
+   */
   constructor(parentTopic, source) {
     // constructs obj from item ID or document
     super(parentTopic, source);
@@ -34,11 +44,12 @@ export class ActionItem extends InfoItem {
    * at the given index.
    *
    * @param index position in the details array (0 if undefined)
-   * @returns {boolean|string} false (if date is not given) or date as ISO8601 string.
+   * @returns {boolean|string} false (if date is not given) or date as ISO8601
+   *     string.
    */
   getDateFromDetails(index) {
     if (index === undefined) index = 0;
-    let details = this._infoItemDoc.details;
+    const details = this._infoItemDoc.details;
     if (
       details.length > index &&
       Object.prototype.hasOwnProperty.call(details[index], "date")
@@ -57,7 +68,7 @@ export class ActionItem extends InfoItem {
    */
   getTextFromDetails(index) {
     if (index === undefined) index = 0;
-    let details = this._infoItemDoc.details;
+    const details = this._infoItemDoc.details;
     if (
       details &&
       details.length > 0 &&
@@ -69,7 +80,7 @@ export class ActionItem extends InfoItem {
   }
 
   /**
-   * Checks whether this topic has associated responsibles
+   * Checks whether this topic has associated responsible participants
    * or not. This method must have the same name as the
    * topic.hasResponsibles method.
    *
@@ -79,7 +90,7 @@ export class ActionItem extends InfoItem {
     return this._infoItemDoc.responsibles?.length;
   }
   /**
-   * Returns all responsibles associated with this
+   * Returns all responsible participants associated with this
    * topic. This method must have the same name as the
    * topic.getResponsibles method.
    *
@@ -101,15 +112,27 @@ export class ActionItem extends InfoItem {
     }
   }
 
+  /**
+   * Retrieves the priority of the action item.
+   * @returns {Priority|string} The priority of the action item, or an empty
+   *     string if no priority is set.
+   */
   getPriority() {
-    let prio = this._infoItemDoc.priority;
+    const prio = this._infoItemDoc.priority;
     return prio ? new Priority(prio) : "";
   }
 
+  /**
+   * Retrieves the due date of the action item.
+   * @returns {Date} The due date of the action item.
+   */
   getDuedate() {
     return this._infoItemDoc.duedate;
   }
 
+  /**
+   * Toggles the state of the info item document.
+   */
   toggleState() {
     // open/close
     this._infoItemDoc.isOpen = !this._infoItemDoc.isOpen;

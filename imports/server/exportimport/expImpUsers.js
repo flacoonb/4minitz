@@ -15,13 +15,13 @@ class ExpImpUsers {
         return allUserDoc[i];
       }
     }
-    throw Error("Could not find user with _id:" + searchID);
+    throw Error(`Could not find user with _id:${searchID}`);
   }
 
   static doExport(db, msID, userIDsFlat) {
     return new Promise((resolve, reject) => {
       userIDsFlat = Object.keys(userIDsFlat);
-      let userIDsOuputMap = {};
+      const userIDsOuputMap = {};
 
       db.collection("users")
         .find({ _id: { $in: userIDsFlat } })
@@ -29,42 +29,42 @@ class ExpImpUsers {
         .then((allUsersDoc) => {
           if (allUsersDoc) {
             // userIDsFlat may contain "free text" users that are not in DB
-            // We create a dict to look up which collected userIDs are really from DB
-            let userIDsFromDB = {};
+            // We create a dict to look up which collected userIDs are really
+            // from DB
+            const userIDsFromDB = {};
             allUsersDoc.map((usr) => {
               userIDsFromDB[usr._id] = 1;
             });
             const usrFile = msID + ExpImpUsers.FILENAME_POSTFIX;
             fs.writeFileSync(usrFile, EJSON.stringify(allUsersDoc, null, 2));
-            console.log(
-              "Saved: " + usrFile + " with " + allUsersDoc.length + " users",
-            );
+            console.log(`Saved: ${usrFile} with ${allUsersDoc.length} users`);
 
             // Save mapping file old => new user ID
             // But only with REAL DB users (skip free text users)
             userIDsFlat.map((usrID) => {
               if (userIDsFromDB[usrID]) {
                 // default: newID === oldID
-                // This means, users are copied(!) from source DB to destination DB
-                // If newID is changed to an existing id from destination ID, this target user is used
-                let thisUser = ExpImpUsers.searchUser(allUsersDoc, usrID);
+                // This means, users are copied(!) from source DB to
+                // destination DB If newID is changed to an existing id from
+                // destination ID, this target user is used
+                const thisUser = ExpImpUsers.searchUser(allUsersDoc, usrID);
                 userIDsOuputMap[usrID] = {
                   newID: usrID,
-                  hint: thisUser.username + " " + thisUser.profile.name,
+                  hint: `${thisUser.username} ${thisUser.profile.name}`,
                 };
               }
             });
             const mapFile = msID + ExpImpUsers.MAPNAME_POSTFIX;
             fs.writeFileSync(mapFile, JSON.stringify(userIDsOuputMap, null, 2));
-            console.log("Saved: " + mapFile);
+            console.log(`Saved: ${mapFile}`);
             console.log(
               "       *** IMPORTANT!!! EDIT USER MAP FILE BEFORE IMPORT!!!",
             );
 
             resolve(db);
-          } else {
-            return reject("Could not find users: ", userIDsFlat);
+            return;
           }
+          return reject("Could not find users: ", userIDsFlat);
         });
     });
   }
@@ -76,27 +76,27 @@ class ExpImpUsers {
       try {
         usrMap = JSON.parse(fs.readFileSync(mapFile, "utf8"));
         if (!usrMap) {
-          return reject("Could not read user map file " + mapFile);
+          return reject(`Could not read user map file ${mapFile}`);
         }
       } catch (e) {
-        return reject("Could not read user map file " + mapFile + "\n" + e);
+        return reject(`Could not read user map file ${mapFile}\n${e}`);
       }
-      let usrMapSimple = {}; // make flat map: oldID => newID
+      const usrMapSimple = {}; // make flat map: oldID => newID
       usrMap = Object.keys(usrMap).map((key) => {
         usrMapSimple[key] = usrMap[key].newID;
       });
       usrMap = usrMapSimple;
 
-      let usrMapCount = Object.keys(usrMap).length;
-      console.log("Found " + usrMapCount + " users in " + mapFile);
-      let usrMapTargetIDs = [];
-      let usrCopyIDs = [];
+      const usrMapCount = Object.keys(usrMap).length;
+      console.log(`Found ${usrMapCount} users in ${mapFile}`);
+      const usrMapTargetIDs = [];
+      const usrCopyIDs = [];
       Object.keys(usrMap).map((key) => {
-        if (key !== usrMap[key]) {
+        if (key === usrMap[key]) {
+          usrCopyIDs.push(key); // copy user from export DB => import DB
+        } else {
           // key/value different...
           usrMapTargetIDs.push(usrMap[key]); // map to existing user
-        } else {
-          usrCopyIDs.push(key); // copy user from export DB => import DB
         }
       });
 
@@ -106,18 +106,13 @@ class ExpImpUsers {
         .toArray()
         .then((doc) => {
           if (doc) {
+            console.log(`Found ${doc.length} target users in current user DB.`);
             console.log(
-              "Found " + doc.length + " target users in current user DB.",
-            );
-            console.log(
-              "Will copy over " +
-                usrCopyIDs.length +
-                " export users to current user DB.",
+              `Will copy over ${usrCopyIDs.length} export users to current user DB.`,
             );
             if (doc.length !== usrMapTargetIDs.length) {
               return reject(
-                "Not all to-be patched target users found in current user DB: " +
-                  usrMapTargetIDs,
+                `Not all to-be patched target users found in current user DB: ${usrMapTargetIDs}`,
               );
             }
             // Check#2: All copy-users MUST NOT exist!
@@ -126,21 +121,22 @@ class ExpImpUsers {
               .toArray()
               .then((shouldBeEmpty) => {
                 if (shouldBeEmpty && shouldBeEmpty.length > 0) {
-                  let errorUsers = shouldBeEmpty.map((usr) => {
+                  const errorUsers = shouldBeEmpty.map((usr) => {
                     return { _id: usr._id, username: usr.username };
                   });
                   return reject(
-                    shouldBeEmpty.length +
-                      " to-be copied user(s) already exists:\n" +
-                      JSON.stringify(errorUsers),
+                    `${
+                      shouldBeEmpty.length
+                    } to-be copied user(s) already exists:\n${JSON.stringify(
+                      errorUsers,
+                    )}`,
                   );
-                } else {
-                  resolve({ db, usrMap });
                 }
+                resolve({ db, usrMap });
               });
-          } else {
-            return reject("Could not find users: ", usrMapTargetIDs);
+            return;
           }
+          return reject("Could not find users: ", usrMapTargetIDs);
         });
     });
   }
@@ -152,37 +148,43 @@ class ExpImpUsers {
       try {
         allUsersDoc = EJSON.parse(fs.readFileSync(usrFile, "utf8"));
         if (!allUsersDoc) {
-          return reject("Could not read user file " + usrFile);
+          return reject(`Could not read user file ${usrFile}`);
         }
       } catch (e) {
-        return reject("Could not read user file " + usrFile + "\n" + e);
+        return reject(`Could not read user file ${usrFile}\n${e}`);
       }
 
       // We have some sequential DB inserts/updates from two cases now.
       // We chain them in a Promise chain.
-      let promiseChain = [];
+      const promiseChain = [];
       for (let u = 0; u < allUsersDoc.length; u++) {
         if (allUsersDoc[u]._id === usrMap[allUsersDoc[u]._id]) {
           // before/after ID are same in mapping file!
-          let roleValueForMS = allUsersDoc[u].roles[msID]; // Case#1: clone this user from source DB => target DB!
-          allUsersDoc[u].roles = { msID: roleValueForMS }; // Kill all other roles, just keep the one for this MS
+          const roleValueForMS = allUsersDoc[u].roles[msID]; // Case#1: clone this user from source
+          // DB => target DB!
+          allUsersDoc[u].roles = {
+            msID: roleValueForMS,
+          }; // Kill all other roles, just keep the one for this MS
           promiseChain.push(db.collection("users").insert(allUsersDoc[u]));
         } else {
           promiseChain.push(
             // Case#2: only update user role for existing user in target DB
             db
               .collection("users")
-              .findOne({ _id: usrMap[allUsersDoc[u]._id] }) // find the user in target DB
-              .then(function (usr) {
-                let roleValueForMS = allUsersDoc[u].roles[msID];
-                if (roleValueForMS && roleValueForMS.length > 0) {
-                  // user needs role for import meeting series?
-                  let roles = usr.roles ? usr.roles : {};
-                  roles[msID] = roleValueForMS;
-                  return db
-                    .collection("users") // upsert role field
-                    .update({ _id: usr._id }, { $set: { roles: roles } });
+              .findOne({
+                _id: usrMap[allUsersDoc[u]._id],
+              }) // find the user in target DB
+              .then((usr) => {
+                const roleValueForMS = allUsersDoc[u].roles[msID];
+                if (!(roleValueForMS && roleValueForMS.length > 0)) {
+                  return;
                 }
+                // user needs role for import meeting series?
+                const roles = usr.roles ? usr.roles : {};
+                roles[msID] = roleValueForMS;
+                return db
+                  .collection("users") // upsert role field
+                  .update({ _id: usr._id }, { $set: { roles } });
               }),
           );
         }
@@ -190,13 +192,13 @@ class ExpImpUsers {
 
       // Now execute the chain.
       Promise.all(promiseChain)
-        .then(function (res) {
+        .then((res) => {
           if (res?.[0] && res[0].result && !res[0].result.ok) {
             console.log("Promisechain result: ", res);
           }
           resolve(db);
         })
-        .catch(function (err) {
+        .catch((err) => {
           reject(err);
         });
     });

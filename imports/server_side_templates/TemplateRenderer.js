@@ -15,9 +15,9 @@ export class TemplateRenderer {
 
     let tmplString;
     if (loadTmplFromAssets) {
-      let templatePath = templatePathPrefix
-        ? templatePathPrefix + "/" + template + ".html"
-        : template + ".html";
+      const templatePath = templatePathPrefix
+        ? `${templatePathPrefix}/${template}.html`
+        : `${template}.html`;
       //  Assets cannot be imported!
       tmplString = Assets.getText(templatePath); // eslint-disable-line
     } else {
@@ -39,7 +39,7 @@ export class TemplateRenderer {
   }
 
   addDataObject(data) {
-    _.extend(this._data, data);
+    _.assignIn(this._data, data);
   }
 
   render() {

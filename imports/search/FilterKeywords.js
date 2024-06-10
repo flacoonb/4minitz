@@ -1,19 +1,41 @@
-import { _ } from "lodash";
-
-let isKeyword = function (token) {
+/**
+ * Checks if a given token represents a valid keyword.
+ *
+ * @param {string} token - The token to check.
+ * @returns {boolean} - `true` if the token is a valid keyword, `false`
+ *     otherwise.
+ */
+const isKeyword = function (token) {
   if (this.USER && token.startsWith(this.USER.key)) {
     return true;
   }
-  let arr = token.split(":");
+  const arr = token.split(":");
   return arr.length === 2 && this.isAllowedValueForKey(arr[0], arr[1]);
 };
 
-let getKeyWordFromToken = function (token, queryUserIdByName) {
-  let key, value, ids;
-  ids = [];
+/**
+ * Extracts a keyword and associated value from a given token.
+ *
+ * If the token starts with the user's key, the key is set to the user's key and
+ * the value is the remainder of the token. If the token contains a colon, the
+ * key is set to the part before the colon and the value is the part after the
+ * colon. If the value is "me", it is set to an empty string. If a
+ * queryUserIdByName function is provided, the function is used to retrieve IDs
+ * associated with the value.
+ *
+ * @param {string} token - The token to extract the keyword and value from.
+ * @param {function} [queryUserIdByName] - An optional function to retrieve IDs
+ *     associated with the value.
+ * @returns {object} - An object containing the extracted key, value, and
+ *     associated IDs.
+ */
+const getKeyWordFromToken = function (token, queryUserIdByName) {
+  let key;
+  let value;
+  let ids = [];
   if (this.USER && token.startsWith(this.USER.key)) {
     key = this.USER.key;
-    value = token.substr(1);
+    value = token.substring(1);
     if (queryUserIdByName) {
       ids = queryUserIdByName(value);
       if (value === "me") {
@@ -21,22 +43,22 @@ let getKeyWordFromToken = function (token, queryUserIdByName) {
       }
     }
   } else {
-    let arr = token.split(":");
+    const arr = token.split(":");
     key = arr[0];
     value = arr[1];
   }
   return {
-    key: key,
-    value: value,
-    ids: ids,
+    key,
+    value,
+    ids,
   };
 };
 
-let isAllowedValueForKey = function (key, value) {
+const isAllowedValueForKey = function (key, value) {
   key = key.toUpperCase();
   if (Object.prototype.hasOwnProperty.call(this, key)) {
-    let values = this[key].values;
-    return values === "*" || _.includes(values, value);
+    const values = this[key].values;
+    return values === "*" || values.includes(value);
   }
   return false;
 };
@@ -79,11 +101,11 @@ export const ITEM_KEYWORDS = {
     example: '"@john" finds all action items assigned to the user john',
   },
 
-  isKeyword: isKeyword,
+  isKeyword,
 
-  getKeyWordFromToken: getKeyWordFromToken,
+  getKeyWordFromToken,
 
-  isAllowedValueForKey: isAllowedValueForKey,
+  isAllowedValueForKey,
 };
 
 export const TOPIC_KEYWORDS = {
@@ -116,9 +138,9 @@ export const TOPIC_KEYWORDS = {
     example: '"@john" finds all topics assigned to the user john',
   },
 
-  isKeyword: isKeyword,
+  isKeyword,
 
-  getKeyWordFromToken: getKeyWordFromToken,
+  getKeyWordFromToken,
 
-  isAllowedValueForKey: isAllowedValueForKey,
+  isAllowedValueForKey,
 };

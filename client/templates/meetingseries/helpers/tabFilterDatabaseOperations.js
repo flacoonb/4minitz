@@ -1,10 +1,10 @@
-import { Meteor } from "meteor/meteor";
 import { Label } from "/imports/label";
+import { Meteor } from "meteor/meteor";
 
 module.exports = {
-  createLabelIdsReceiver: function (parentMeetingSeriesId) {
+  createLabelIdsReceiver(parentMeetingSeriesId) {
     return function getLabelIdsByName(labelName, caseSensitive) {
-      let label = Label.findLabelsContainingSubstring(
+      const label = Label.findLabelsContainingSubstring(
         parentMeetingSeriesId,
         labelName,
         caseSensitive,
@@ -18,8 +18,8 @@ module.exports = {
     };
   },
 
-  createUserIdsReceiver: function getUserIdsByName(userName) {
-    let users =
+  createUserIdsReceiver(userName) {
+    const users =
       userName === "me"
         ? [Meteor.user()]
         : Meteor.users.find({ username: { $regex: userName } }).fetch();

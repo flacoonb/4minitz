@@ -7,20 +7,20 @@
  * users: node createTestUsers.js -m mongodb://localhost:3101/meteor -n 5000
  */
 
-let mongo = require("mongodb").MongoClient;
-const { faker } = require("@faker-js/faker");
-let random = require("randomstring");
+import { faker } from "@faker-js/faker";
+import { MongoClient as mongo } from "mongodb";
+import random from "randomstring";
 
 class UserFactory {
   static getUser() {
-    UserFactory.counter += 1;
-    const username = "user_" + UserFactory.postfix + "_" + UserFactory.counter;
+    UserFactory.counter++;
+    const username = `user_${UserFactory.postfix}_${UserFactory.counter}`;
     return {
       _id: random.generate({
         length: 17,
         charset: "23456789ABCDEFGHJKLMNPQRSTWXYZabcdefghijkmnopqrstuvwxyz",
       }),
-      username: username,
+      username,
       createdAt: new Date(),
       isInactive: false,
       services: {
@@ -31,16 +31,16 @@ class UserFactory {
         },
       },
       profile: { name: faker.person.fullName() },
-      emails: [{ address: username + "@4minitz.com", verified: false }],
+      emails: [{ address: `${username}@4minitz.com`, verified: false }],
     };
   }
 
   static saveUsers(db, numberOfUsers) {
     return new Promise((resolve, reject) => {
       for (let i = 0; i < numberOfUsers; i++) {
-        let user = UserFactory.getUser();
+        const user = UserFactory.getUser();
         db.collection("users").insert(user);
-        console.log(i + "\t" + user.username + "\t" + user.profile.name);
+        console.log(`${i}\t${user.username}\t${user.profile.name}`);
       }
       resolve(db);
     });
@@ -52,7 +52,7 @@ UserFactory.postfix = random.generate({
   charset: "23456789ABCDEFGHJKLMNPQRSTWXYZabcdefghijkmnopqrstuvwxyz",
 });
 
-let _connectMongo = function (mongoUrl) {
+const _connectMongo = function (mongoUrl) {
   return new Promise((resolve, reject) => {
     mongo.connect(mongoUrl, (error, db) => {
       if (error) {
@@ -63,28 +63,26 @@ let _connectMongo = function (mongoUrl) {
   });
 };
 
-let optionParser = require("node-getopt").create([
+const optionParser = require("node-getopt").create([
   ["n", "number=[ARG]", "Number of users to be created"],
   ["m", "mongourl=[ARG]", "Mongo DB url"],
   ["h", "help", "Display this help"],
 ]);
-let arg = optionParser.bindHelp().parseSystem();
-let mongoUrl = arg.options.mongourl || process.env.MONGO_URL;
-let numberOfUsers = arg.options.number;
+const arg = optionParser.bindHelp().parseSystem();
+const mongoUrl = arg.options.mongourl || process.env.MONGO_URL;
+const numberOfUsers = arg.options.number;
 if (!numberOfUsers) {
   optionParser.showHelp();
-  console.error("No --numberparameter set");
-  process.exit(1);
+  throw new Error("No --numberparameter set");
 }
 if (!mongoUrl) {
   optionParser.showHelp();
-  console.error("No --mongourl parameter or MONGO_URL in env");
-  process.exit(1);
+  throw new Error("No --mongourl parameter or MONGO_URL in env");
 }
 
 _connectMongo(mongoUrl)
   .then((db) => UserFactory.saveUsers(db, numberOfUsers))
   .then((db) => db.close())
   .catch((error) => {
-    console.log("Error: " + error);
+    console.log(`Error: ${error}`);
   });

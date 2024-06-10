@@ -1,10 +1,10 @@
-const ldap = require("ldapjs"),
-  _ = require("lodash");
+const ldap = require("ldapjs");
+const _ = require("lodash");
 
-let _createLDAPClient = function (settings) {
-  return new Promise((resolve, reject) => {
+const _createLDAPClient = (settings) =>
+  new Promise((resolve, reject) => {
     try {
-      let client = ldap.createClient({
+      const client = ldap.createClient({
         url: settings.serverUrl,
       });
 
@@ -16,15 +16,14 @@ let _createLDAPClient = function (settings) {
       reject(`Error creating client: ${error}`);
     }
   });
-};
 
-let _bind = function (connection) {
-  return new Promise((resolve, reject) => {
-    const client = connection.client,
-      settings = connection.settings,
-      auth = settings.authentication,
-      userDn = auth?.userDn,
-      password = auth?.password;
+const _bind = (connection) =>
+  new Promise((resolve, reject) => {
+    const client = connection.client;
+    const settings = connection.settings;
+    const auth = settings.authentication;
+    const userDn = auth?.userDn;
+    const password = auth?.password;
 
     // no authentication details provided
     // => the ldap server probably allows anonymous access
@@ -42,12 +41,11 @@ let _bind = function (connection) {
       resolve(connection);
     });
   });
-};
 
 const inactivityStrategies = {
   userAccountControl(inactivitySettings, entry) {
-    const uac = entry.object.userAccountControl || 0,
-      flagIsSet = uac & 2;
+    const uac = entry.object.userAccountControl || 0;
+    const flagIsSet = uac & 2;
 
     return Boolean(flagIsSet);
   },
@@ -64,30 +62,34 @@ const inactivityStrategies = {
 };
 
 function isInactive(inactivitySettings, entry) {
-  const strategy = inactivitySettings?.strategy || "none",
-    strategyFunction =
-      inactivityStrategies[strategy] || inactivityStrategies.none;
+  const strategy = inactivitySettings?.strategy || "none";
+  const strategyFunction =
+    inactivityStrategies[strategy] || inactivityStrategies.none;
 
   return strategyFunction(inactivitySettings, entry);
 }
 
-let _fetchLDAPUsers = function (connection) {
-  let client = connection.client,
-    settings = connection.settings,
-    base = settings.serverDn,
-    searchDn = _.get(settings, "propertyMap.username", "cn"),
-    userLongNameAttribute = _.get(settings, "propertyMap.longname", searchDn),
-    emailAttribute = _.get(settings, "propertyMap.email", searchDn),
-    filter = `(&(${searchDn}=*)${settings.searchFilter})`,
-    scope = "sub",
-    whiteListedFields = _.get(settings, "whiteListedFields", []),
-    attributes = whiteListedFields.concat([
-      "userAccountControl",
-      searchDn,
-      userLongNameAttribute,
-      emailAttribute,
-    ]),
-    options = { filter, scope, attributes, paged: true };
+const _fetchLDAPUsers = (connection) => {
+  const client = connection.client;
+  const settings = connection.settings;
+  const base = settings.serverDn;
+  const searchDn = _.get(settings, "propertyMap.username", "cn");
+  const userLongNameAttribute = _.get(
+    settings,
+    "propertyMap.longname",
+    searchDn,
+  );
+  const emailAttribute = _.get(settings, "propertyMap.email", searchDn);
+  const filter = `(&(${searchDn}=*)${settings.searchFilter})`;
+  const scope = "sub";
+  const allowListedFields = _.get(settings, "allowListedFields", []);
+  const attributes = allowListedFields.concat([
+    "userAccountControl",
+    searchDn,
+    userLongNameAttribute,
+    emailAttribute,
+  ]);
+  const options = { filter, scope, attributes, paged: true };
 
   if (settings.isInactivePredicate && !settings.inactiveUsers) {
     settings.inactiveUsers = {
@@ -101,19 +103,19 @@ let _fetchLDAPUsers = function (connection) {
       client.search(base, options, (error, response) => {
         if (error) reject(`Search failed: ${error}`);
 
-        let entries = [];
+        const entries = [];
 
-        response.on("searchEntry", function (entry) {
-          const userIsInactive = isInactive(settings.inactiveUsers, entry),
-            userData = Object.assign({}, entry.object, {
-              isInactive: userIsInactive,
-            });
+        response.on("searchEntry", (entry) => {
+          const userIsInactive = isInactive(settings.inactiveUsers, entry);
+          const userData = Object.assign({}, entry.object, {
+            isInactive: userIsInactive,
+          });
           entries.push(userData);
         });
-        response.on("error", function (error) {
+        response.on("error", (error) => {
           reject(error);
         });
-        response.on("end", function () {
+        response.on("end", () => {
           resolve({ client, settings, entries });
         });
       });
@@ -123,10 +125,10 @@ let _fetchLDAPUsers = function (connection) {
   });
 };
 
-let _closeLDAPClient = function (connection) {
-  let client = connection.client,
-    settings = connection.settings,
-    users = connection.entries;
+const _closeLDAPClient = (connection) => {
+  const client = connection.client;
+  const settings = connection.settings;
+  const users = connection.entries;
 
   return new Promise((resolve) => {
     client.unbind(() => {
@@ -137,8 +139,8 @@ let _closeLDAPClient = function (connection) {
   });
 };
 
-let getLDAPUsers = function (settings) {
-  return new Promise((resolve, reject) => {
+const getLDAPUsers = (settings) =>
+  new Promise((resolve, reject) => {
     _createLDAPClient(settings)
       .then(_bind)
       .then(_fetchLDAPUsers)
@@ -146,6 +148,5 @@ let getLDAPUsers = function (settings) {
       .then(resolve)
       .catch(reject);
   });
-};
 
 module.exports = getLDAPUsers;

@@ -1,22 +1,18 @@
 let mongo = require("mongodb").MongoClient,
   mongoUriParser = require("mongo-uri"),
-  transformUser = require("./transformUser"),
-  _ = require("underscore");
+  transformUser = require("./transformUser");
+
+import { _ } from "lodash";
 import { Random } from "../../tests/performance/fixtures/lib/random";
 
-let _transformUsers = function (settings, users) {
-  return _.map(users, (user) => transformUser(settings, user));
-};
+const _transformUsers = (settings, users) =>
+  _.map(users, (user) => transformUser(settings, user));
 
-let _connectMongo = function (mongoUrl) {
-  return mongo.connect(mongoUrl);
-};
+const _connectMongo = (mongoUrl) => mongo.connect(mongoUrl);
 
-RegExp.escape = function (s) {
-  return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-};
+RegExp.escape = (s) => s.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
 
-let _insertUsers = function (client, mongoUri, users) {
+const _insertUsers = (client, mongoUri, users) => {
   // unique id from the random package also used by minimongo
   // character list:
   // https://github.com/meteor/meteor/blob/release/METEOR%401.4.0.1/packages/random/random.js#L88
@@ -30,15 +26,15 @@ let _insertUsers = function (client, mongoUri, users) {
   return new Promise((resolve, reject) => {
     try {
       const mongoConnection = mongoUriParser.parse(mongoUri);
-      let bulk = client
+      const bulk = client
         .db(mongoConnection.database)
         .collection("users")
         .initializeUnorderedBulkOp();
-      _.each(users, (user) => {
+      _.forEach(users, (user) => {
         if (user?.username && user.emails[0] && user.emails[0].address) {
           user.isLDAPuser = true;
-          let usrRegExp = new RegExp(
-            "^" + RegExp.escape(user.username) + "$",
+          const usrRegExp = new RegExp(
+            `^${RegExp.escape(user.username)}$`,
             "i",
           );
           bulk
@@ -57,13 +53,13 @@ let _insertUsers = function (client, mongoUri, users) {
               $set: user,
             });
         } else {
-          let stringifiedUser = JSON.stringify(user, null, 2);
+          const stringifiedUser = JSON.stringify(user, null, 2);
           console.log(
             `SKIPPED INVALID USER (no username or no valid emails[0].address): ${stringifiedUser}`,
           );
         }
       });
-      let bulkResult = bulk.execute();
+      const bulkResult = bulk.execute();
 
       resolve({ client, bulkResult });
     } catch (error) {
@@ -72,7 +68,7 @@ let _insertUsers = function (client, mongoUri, users) {
   });
 };
 
-let _closeMongo = function (data) {
+const _closeMongo = (data) => {
   let force = false,
     client = data.client,
     result = data.bulkResult;
@@ -83,8 +79,8 @@ let _closeMongo = function (data) {
   });
 };
 
-let saveUsers = function (settings, mongoUrl, users) {
-  let dbUsers = _transformUsers(settings, users);
+const saveUsers = (settings, mongoUrl, users) => {
+  const dbUsers = _transformUsers(settings, users);
 
   return new Promise((resolve, reject) => {
     _connectMongo(mongoUrl)

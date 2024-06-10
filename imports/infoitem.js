@@ -4,11 +4,22 @@
  * a date when is was created
  * and a list of associated tags.
  */
-import { Meteor } from "meteor/meteor";
-import { _ } from "meteor/underscore";
-import { formatDateISO8601 } from "/imports/helpers/date";
-import { Random } from "meteor/random";
 import { User } from "/imports/user";
+import { _ } from "lodash";
+import { Meteor } from "meteor/meteor";
+import { Random } from "meteor/random";
+
+import { formatDateISO8601 } from "./helpers/date";
+import { StringUtils } from "./helpers/string-utils";
+
+/**
+ * The InfoItem class represents an information item in a topic.
+ *
+ * @class
+ * @param {Object} parentTopic - The topic to which this InfoItem belongs.
+ * @param {Object} source - The source document for this InfoItem.
+ * @throws {Meteor.Error} If parentTopic or source is not provided.
+ */
 export class InfoItem {
   constructor(parentTopic, source) {
     if (!parentTopic || !source)
@@ -29,15 +40,15 @@ export class InfoItem {
 
     if (typeof source === "string") {
       // we may have an ID here.
-      // Caution: findInfoItem returns a InfoItem-Object not the document itself!
-      let infoItem = this._parentTopic.findInfoItem(source);
+      // Caution: findInfoItem returns a InfoItem-Object not the document
+      // itself!
+      const infoItem = this._parentTopic.findInfoItem(source);
       source = infoItem._infoItemDoc;
     }
 
     if (!Object.prototype.hasOwnProperty.call(source, "createdInMinute")) {
       throw new Meteor.Error("Property createdInMinute of topicDoc required");
     }
-
     _.defaults(source, {
       itemType: "infoItem",
       isNew: true,
@@ -48,10 +59,24 @@ export class InfoItem {
   }
 
   // ################### static methods
+  /**
+   * Checks if the given infoItem document is an action item.
+   *
+   * @param {Object} infoItemDoc - The infoItem document to check.
+   * @returns {boolean} - Returns true if the infoItem is an action item, false
+   *     otherwise.
+   */
   static isActionItem(infoItemDoc) {
     return infoItemDoc.itemType === "actionItem";
   }
 
+  /**
+   * Checks if an info item document is created in a specific minute.
+   * @param {Object} infoItemDoc - The info item document to check.
+   * @param {string} minutesId - The ID of the minute to compare against.
+   * @returns {boolean} - True if the info item is created in the specified
+   *     minute, false otherwise.
+   */
   static isCreatedInMinutes(infoItemDoc, minutesId) {
     return infoItemDoc.createdInMinute === minutesId;
   }
@@ -61,6 +86,11 @@ export class InfoItem {
     this._infoItemDoc.isNew = false;
   }
 
+  /**
+   * Returns the ID of the info item.
+   *
+   * @returns {string} The ID of the info item.
+   */
   getId() {
     return this._infoItemDoc._id;
   }
@@ -84,7 +114,7 @@ export class InfoItem {
   addDetails(minuteId, text) {
     if (text === undefined) text = "";
 
-    let date = formatDateISO8601(new Date());
+    const date = formatDateISO8601(new Date());
     if (!this._infoItemDoc.details) {
       this._infoItemDoc.details = [];
     }
@@ -92,11 +122,11 @@ export class InfoItem {
       _id: Random.id(),
       createdInMinute: minuteId,
       createdAt: new Date(),
-      createdBy: User.PROFILENAMEWITHFALLBACK(Meteor.user()),
+      createdBy: User.profileNameWithFallback(Meteor.user()),
       updatedAt: new Date(),
-      updatedBy: User.PROFILENAMEWITHFALLBACK(Meteor.user()),
-      date: date,
-      text: text,
+      updatedBy: User.profileNameWithFallback(Meteor.user()),
+      date,
+      text,
       isNew: true,
     });
   }
@@ -113,14 +143,15 @@ export class InfoItem {
           "to delete an element",
       );
     }
-    if (text !== this._infoItemDoc.details[index].text) {
-      this._infoItemDoc.details[index].date = formatDateISO8601(new Date());
-      this._infoItemDoc.details[index].text = text;
-      this._infoItemDoc.details[index].updatedAt = new Date();
-      this._infoItemDoc.details[index].updatedBy = User.PROFILENAMEWITHFALLBACK(
-        Meteor.user(),
-      );
+    if (text === this._infoItemDoc.details[index].text) {
+      return;
     }
+    this._infoItemDoc.details[index].date = formatDateISO8601(new Date());
+    this._infoItemDoc.details[index].text = text;
+    this._infoItemDoc.details[index].updatedAt = new Date();
+    this._infoItemDoc.details[index].updatedBy = User.profileNameWithFallback(
+      Meteor.user(),
+    );
   }
 
   getDetails() {
@@ -143,11 +174,9 @@ export class InfoItem {
     return this._infoItemDoc.details[index];
   }
 
-  async save(callback) {
-    callback = callback || function () {};
-
+  async save(callback = () => {}) {
     try {
-      let result = await this.saveAsync();
+      const result = await this.saveAsync();
       callback(undefined, result);
     } catch (error) {
       callback(error);
@@ -160,10 +189,10 @@ export class InfoItem {
     if (!this._infoItemDoc._id) {
       // it is a new one
       this._infoItemDoc.createdAt = new Date();
-      this._infoItemDoc.createdBy = User.PROFILENAMEWITHFALLBACK(Meteor.user());
+      this._infoItemDoc.createdBy = User.profileNameWithFallback(Meteor.user());
     }
     this._infoItemDoc.updatedAt = new Date();
-    this._infoItemDoc.updatedBy = User.PROFILENAMEWITHFALLBACK(Meteor.user());
+    this._infoItemDoc.updatedBy = User.profileNameWithFallback(Meteor.user());
     this._infoItemDoc._id = await this._parentTopic.upsertInfoItem(
       this._infoItemDoc,
       true,
@@ -192,8 +221,8 @@ export class InfoItem {
   }
 
   /**
-   *
-   * @param labelIds {string[]}
+   * Adds labels to the info item by their IDs.
+   * @param {Array} labelIds - An array of label IDs to be added.
    */
   addLabelsById(labelIds) {
     labelIds.forEach((id) => {
@@ -220,8 +249,17 @@ export class InfoItem {
     return this._infoItemDoc.labels;
   }
 
+  /**
+   * Returns a string representation of the InfoItem object.
+   * @todo refactor to use {@link StringUtils.createToString}
+   *   constructor() {
+   *
+   *this.toString = StringUtils.createToString(this);
+   * }
+   * @returns {string} The string representation of the InfoItem object.
+   */
   toString() {
-    return "InfoItem: " + JSON.stringify(this._infoItemDoc, null, 4);
+    return `InfoItem: ${JSON.stringify(this._infoItemDoc, null, 4)}`;
   }
 
   log() {

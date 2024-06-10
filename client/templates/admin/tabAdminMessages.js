@@ -1,15 +1,15 @@
+import { BroadcastMessageSchema } from "/imports/collections/broadcastmessages.schema";
+import { formatDateISO8601Time } from "/imports/helpers/date";
 import { Meteor } from "meteor/meteor";
 import { Template } from "meteor/templating";
 import { i18n } from "meteor/universe:i18n";
-import { BroadcastMessageSchema } from "/imports/collections/broadcastmessages.schema";
-import { formatDateISO8601Time } from "/imports/helpers/date";
 
 Template.tabAdminMessages.onCreated(function () {
   this.subscribe("broadcastmessage");
   this.subscribe("broadcastmessageAdmin");
 });
 
-Template.tabAdminMessages.onRendered(function () {
+Template.tabAdminMessages.onRendered(() => {
   Template.instance().find("#id_adminMessage").focus();
 });
 
@@ -25,7 +25,7 @@ Template.tabAdminMessages.helpers({
     return "#ffced9";
   },
 
-  formatTimeStamp: function (date) {
+  formatTimeStamp(date) {
     return formatDateISO8601Time(date);
   },
 });
@@ -33,7 +33,7 @@ Template.tabAdminMessages.helpers({
 Template.tabAdminMessages.events({
   "submit #frmAdminMessages"(evt, tmpl) {
     evt.preventDefault();
-    let message = tmpl.find("#id_adminMessage").value;
+    const message = tmpl.find("#id_adminMessage").value;
     Meteor.call("broadcastmessage.show", message);
     tmpl.find("#id_adminMessage").value = "";
   },
@@ -50,15 +50,15 @@ Template.tabAdminMessages.events({
 
   "click #btnDismissingUsers"(evt) {
     evt.preventDefault();
-    let userIds = this.dismissForUserIDs;
+    const userIds = this.dismissForUserIDs;
     let userNames = i18n.__("Admin.Message.dismissingUsers", {
       number: this.dismissForUserIDs.length,
     });
     userIds.forEach((usrId) => {
-      let user = Meteor.users.findOne(usrId);
+      const user = Meteor.users.findOne(usrId);
       if (user) {
-        userNames += user.username + " ";
-        userNames += user.profile?.name ? user.profile.name + "\n" : "\n";
+        userNames += `${user.username} `;
+        userNames += user.profile?.name ? `${user.profile.name}\n` : "\n";
       }
     });
     alert(userNames);

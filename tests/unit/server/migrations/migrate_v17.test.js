@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import proxyquire from "proxyquire";
 
-let MeetingSeriesSchema = {
+const MeetingSeriesSchema = {
   update: (id, doc) => {
-    let meetingSeries = MeetingSeriesSchema.getCollection()
+    const meetingSeries = MeetingSeriesSchema.getCollection()
       .find()
       .find((series) => series._id === id);
     if (Object.prototype.hasOwnProperty.call(doc, "$set")) {
@@ -20,11 +20,11 @@ let MeetingSeriesSchema = {
 MeetingSeriesSchema.getCollection = (_) => MeetingSeriesSchema;
 
 class MeteorError {}
-let Meteor = {
+const Meteor = {
   Error: MeteorError,
 };
 
-let MinutesFinder = {
+const MinutesFinder = {
   lastMinutesOfMeetingSeries(meetingSeries) {
     if (meetingSeries.hasMinute) {
       return {
@@ -50,8 +50,8 @@ const { MigrateV17 } = proxyquire("../../../../server/migrations/migrate_v17", {
   "/imports/services/minutesFinder": { MinutesFinder, "@noCallThru": true },
 });
 
-describe("Migrate Version 17", function () {
-  beforeEach(function () {
+describe("Migrate Version 17", () => {
+  beforeEach(() => {
     firstFakeMeetingSeries = {
       _id: "MS001",
       hasMinute: true,
@@ -70,8 +70,8 @@ describe("Migrate Version 17", function () {
     };
   });
 
-  describe("#up", function () {
-    it("adds new fields to all meetingseries correctly", function () {
+  describe("#up", () => {
+    it("adds new fields to all meetingseries correctly", () => {
       MigrateV17.up();
       MeetingSeriesSchema.find().forEach((meetingSeries) => {
         const expectedMinuteId = meetingSeries.hasMinute ? "MIN_ID" : null;
@@ -88,15 +88,15 @@ describe("Migrate Version 17", function () {
     });
   });
 
-  describe("#down", function () {
-    beforeEach(function () {
+  describe("#down", () => {
+    beforeEach(() => {
       MeetingSeriesSchema.find().forEach((meetingSeries) => {
         meetingSeries.lastMinutesFinalized = true;
         meetingSeries.lastMinutesId = "MIN_ID";
       });
     });
 
-    it("removes the fields in all Meeting Series", function () {
+    it("removes the fields in all Meeting Series", () => {
       MigrateV17.down();
       MeetingSeriesSchema.find().forEach((meetingSeries) => {
         expect(meetingSeries).not.have.ownProperty("lastMinutesFinalized");
